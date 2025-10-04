@@ -1,6 +1,11 @@
 # ✂️ Sistema de Reserva de Turnos para Peluquería
 
 Sistema web completo para gestión de turnos, desarrollado con Firebase (100% gratis para siempre).
+  🌐 URLs de la aplicación:
+
+  App Principal (Clientes):https://appturnos-a085a.web.app
+
+  Panel de Administración:https://appturnos-a085a.web.app/admin.html
 
 ## 🌟 Características
 
