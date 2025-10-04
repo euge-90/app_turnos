@@ -16,31 +16,34 @@ const AdminManager = {
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
         // Turnos hoy
-        const turnosHoy = await db.collection('turnos')
+        const turnosHoySnapshot = await db.collection('turnos')
             .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(today))
             .where('fecha', '<', firebase.firestore.Timestamp.fromDate(new Date(today.getTime() + 24 * 60 * 60 * 1000)))
-            .where('estado', '==', 'confirmado')
             .get();
+
+        const turnosHoy = turnosHoySnapshot.docs.filter(doc => doc.data().estado === 'confirmado').length;
 
         // Turnos semana
-        const turnosSemana = await db.collection('turnos')
+        const turnosSemanaSnapshot = await db.collection('turnos')
             .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(startOfWeek))
-            .where('estado', '==', 'confirmado')
             .get();
 
+        const turnosSemana = turnosSemanaSnapshot.docs.filter(doc => doc.data().estado === 'confirmado').length;
+
         // Turnos mes
-        const turnosMes = await db.collection('turnos')
+        const turnosMesSnapshot = await db.collection('turnos')
             .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(startOfMonth))
-            .where('estado', '==', 'confirmado')
             .get();
+
+        const turnosMes = turnosMesSnapshot.docs.filter(doc => doc.data().estado === 'confirmado').length;
 
         // Total clientes
         const clientes = await db.collection('usuarios').get();
 
         return {
-            turnosHoy: turnosHoy.size,
-            turnosSemana: turnosSemana.size,
-            turnosMes: turnosMes.size,
+            turnosHoy,
+            turnosSemana,
+            turnosMes,
             totalClientes: clientes.size
         };
     },
@@ -55,16 +58,20 @@ const AdminManager = {
         const snapshot = await db.collection('turnos')
             .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
             .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
-            .where('estado', '==', 'confirmado')
-            .orderBy('fecha')
-            .orderBy('hora')
             .get();
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            fecha: doc.data().fecha.toDate()
-        }));
+        return snapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                fecha: doc.data().fecha.toDate()
+            }))
+            .filter(turno => turno.estado === 'confirmado')
+            .sort((a, b) => {
+                const fechaDiff = a.fecha - b.fecha;
+                if (fechaDiff !== 0) return fechaDiff;
+                return a.hora.localeCompare(b.hora);
+            });
     },
 
     // Obtener turnos de la semana
@@ -78,16 +85,20 @@ const AdminManager = {
         const snapshot = await db.collection('turnos')
             .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
             .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
-            .where('estado', '==', 'confirmado')
-            .orderBy('fecha')
-            .orderBy('hora')
             .get();
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            fecha: doc.data().fecha.toDate()
-        }));
+        return snapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                fecha: doc.data().fecha.toDate()
+            }))
+            .filter(turno => turno.estado === 'confirmado')
+            .sort((a, b) => {
+                const fechaDiff = a.fecha - b.fecha;
+                if (fechaDiff !== 0) return fechaDiff;
+                return a.hora.localeCompare(b.hora);
+            });
     },
 
     // Cancelar turno (admin)
@@ -158,23 +169,29 @@ const AdminManager = {
         const snapshot = await db.collection('turnos')
             .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
             .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
-            .orderBy('fecha')
-            .orderBy('hora')
             .get();
 
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            const servicio = Utils.getServicio(data.servicio.id);
-            return {
-                Fecha: Utils.formatearFechaCorta(data.fecha.toDate()),
-                Hora: data.hora,
-                Cliente: data.usuarioNombre,
-                Email: data.usuarioEmail,
-                Servicio: servicio.nombre,
-                Precio: servicio.precio,
-                Estado: data.estado
-            };
-        });
+        return snapshot.docs
+            .map(doc => {
+                const data = doc.data();
+                const servicio = Utils.getServicio(data.servicio.id);
+                return {
+                    fecha: data.fecha.toDate(),
+                    hora: data.hora,
+                    Fecha: Utils.formatearFechaCorta(data.fecha.toDate()),
+                    Hora: data.hora,
+                    Cliente: data.usuarioNombre,
+                    Email: data.usuarioEmail,
+                    Servicio: servicio.nombre,
+                    Precio: servicio.precio,
+                    Estado: data.estado
+                };
+            })
+            .sort((a, b) => {
+                const fechaDiff = a.fecha - b.fecha;
+                if (fechaDiff !== 0) return fechaDiff;
+                return a.hora.localeCompare(b.hora);
+            });
     },
 
     // Obtener estadísticas de servicios
