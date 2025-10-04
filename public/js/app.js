@@ -459,18 +459,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Navegación del calendario
     document.getElementById('prevMonthBtn').addEventListener('click', () => {
-        gestorTurnos.currentMonth.setMonth(gestorTurnos.currentMonth.getMonth() - 1);
-        UI.renderCalendario();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const prevMonth = new Date(gestorTurnos.currentMonth);
+        prevMonth.setMonth(prevMonth.getMonth() - 1);
+
+        // Obtener el primer día del mes anterior
+        const firstDayOfPrevMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
+
+        // Permitir retroceder solo si el mes anterior no es completamente pasado
+        const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (firstDayOfPrevMonth >= firstDayOfCurrentMonth) {
+            gestorTurnos.currentMonth = prevMonth;
+            UI.renderCalendario();
+        }
     });
 
     document.getElementById('nextMonthBtn').addEventListener('click', () => {
-        const maxMonth = new Date();
-        maxMonth.setDate(maxMonth.getDate() + CONFIG.diasAnticipacion);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const maxDate = new Date(today);
+        maxDate.setDate(maxDate.getDate() + CONFIG.diasAnticipacion);
 
         const nextMonth = new Date(gestorTurnos.currentMonth);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-        if (nextMonth <= maxMonth) {
+        // Obtener el primer día del mes siguiente
+        const firstDayOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
+
+        // Permitir navegación si el primer día del mes está dentro del rango
+        if (firstDayOfNextMonth <= maxDate) {
             gestorTurnos.currentMonth = nextMonth;
             UI.renderCalendario();
         }
