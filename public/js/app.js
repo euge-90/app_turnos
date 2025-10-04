@@ -78,13 +78,17 @@ class GestorTurnos {
         if (!user) throw new Error('Debes iniciar sesión');
 
         // Verificar límite de turnos
-        const turnosActivos = await db.collection('turnos')
+        const turnosActivosSnapshot = await db.collection('turnos')
             .where('usuarioId', '==', user.uid)
             .where('estado', '==', 'confirmado')
-            .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(new Date()))
             .get();
 
-        if (turnosActivos.size >= CONFIG.maxTurnosPorUsuario) {
+        const ahora = firebase.firestore.Timestamp.fromDate(new Date());
+        const turnosActivos = turnosActivosSnapshot.docs.filter(doc =>
+            doc.data().fecha >= ahora
+        );
+
+        if (turnosActivos.length >= CONFIG.maxTurnosPorUsuario) {
             throw new Error(`Máximo ${CONFIG.maxTurnosPorUsuario} turnos activos permitidos`);
         }
 
@@ -94,13 +98,16 @@ class GestorTurnos {
         const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fecha);
 
         // Verificar que no exista otro turno en ese horario
-        const existentes = await db.collection('turnos')
+        const existentesSnapshot = await db.collection('turnos')
             .where('fecha', '==', fechaTimestamp)
             .where('hora', '==', hora)
-            .where('estado', '==', 'confirmado')
             .get();
 
-        if (!existentes.empty) {
+        const existentes = existentesSnapshot.docs.filter(doc =>
+            doc.data().estado === 'confirmado'
+        );
+
+        if (existentes.length > 0) {
             throw new Error('Este horario ya fue reservado por otro usuario');
         }
 
@@ -170,20 +177,34 @@ class GestorTurnos {
         const user = auth.currentUser;
         if (!user) return [];
 
-        const snapshot = await db.collection('turnos')
-            .where('usuarioId', '==', user.uid)
-            .where('estado', '==', 'confirmado')
-            .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(new Date()))
-            .orderBy('fecha', 'asc')
-            .orderBy('hora', 'asc')
-            .limit(10)
-            .get();
+        try {
+            const snapshot = await db.collection('turnos')
+                .where('usuarioId', '==', user.uid)
+                .where('estado', '==', 'confirmado')
+                .get();
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            fecha: doc.data().fecha.toDate()
-        }));
+            const ahora = firebase.firestore.Timestamp.fromDate(new Date());
+
+            // Filtrar, ordenar y limitar en JavaScript
+            return snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    fecha: doc.data().fecha.toDate()
+                }))
+                .filter(turno => turno.fecha >= ahora.toDate())
+                .sort((a, b) => {
+                    // Ordenar por fecha
+                    const fechaDiff = a.fecha - b.fecha;
+                    if (fechaDiff !== 0) return fechaDiff;
+                    // Si la fecha es igual, ordenar por hora
+                    return a.hora.localeCompare(b.hora);
+                })
+                .slice(0, 10);
+        } catch (error) {
+            console.error('Error al obtener turnos:', error);
+            return [];
+        }
     }
 }
 
