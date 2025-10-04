@@ -129,28 +129,35 @@ const AdminManager = {
     // Obtener fechas bloqueadas
     async obtenerFechasBloqueadas() {
         const snapshot = await db.collection('fechasBloqueadas')
-            .orderBy('fecha', 'desc')
             .get();
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        return snapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+            .sort((a, b) => {
+                // Ordenar por fecha (descendente)
+                if (a.fecha > b.fecha) return -1;
+                if (a.fecha < b.fecha) return 1;
+                return 0;
+            });
     },
 
     // Buscar turnos por cliente
     async buscarTurnos(query) {
         const snapshot = await db.collection('turnos')
             .where('estado', '==', 'confirmado')
-            .orderBy('fecha', 'desc')
-            .limit(50)
             .get();
 
-        const turnos = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            fecha: doc.data().fecha.toDate()
-        }));
+        const turnos = snapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                fecha: doc.data().fecha.toDate()
+            }))
+            .sort((a, b) => b.fecha - a.fecha)
+            .slice(0, 50);
 
         // Filtrar por nombre o email
         const queryLower = query.toLowerCase();
@@ -416,7 +423,10 @@ const AdminUI = {
                         item.innerHTML = `
                             <div class="agenda-item-info">
                                 <h4>${turno.hora} - ${servicio.nombre}</h4>
-                                <p>${turno.usuarioNombre}</p>
+                                <p>${turno.usuarioNombre} (${turno.usuarioEmail})</p>
+                            </div>
+                            <div class="turno-actions">
+                                <button class="btn-danger btn-small" onclick="eliminarTurnoAdmin('${turno.id}')">Eliminar</button>
                             </div>
                         `;
 
@@ -657,12 +667,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('turnosHoy')) return;
 
     // Mostrar nombre del admin
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
         if (user && user.email === CONFIG.adminEmail) {
             const adminName = document.getElementById('adminNameNav');
             if (adminName) {
                 adminName.textContent = 'Administrador';
             }
+
+            // Cargar servicios desde Firestore o migrar los existentes
+            await AdminManager.cargarServicios();
 
             // Inicializar UI
             AdminUI.renderEstadisticas();
