@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Turnos Peluquería</title>
+  <link rel="stylesheet" href="turnos-calendar.css">
+  <style>
+    .login-container {
+      max-width: 400px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(33,150,243,0.10);
+      padding: 32px 18px 24px 18px;
+    }
+    .login-container h2 {
+      text-align: center;
+      color: #2196f3;
+      margin-bottom: 1.5em;
+    }
+    .login-form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .login-form input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #bdbdbd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .login-form button {
+      width: 100%;
+      background: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .toggle-link {
+      color: #2196f3;
+      text-align: center;
+      display: block;
+      cursor: pointer;
+      margin-top: 10px;
+      text-decoration: underline;
+    }
+    .error-msg {
+      color: #d32f2f;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 0.98em;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2 id="form-title">Iniciar Sesión</h2>
+    <form id="login-form" class="login-form">
+      <div id="register-fields" style="display:none;">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" name="nombre" autocomplete="given-name">
+        <label for="apellido">Apellido</label>
+        <input type="text" id="apellido" name="apellido" autocomplete="family-name">
+        <label for="dni">DNI</label>
+        <input type="text" id="dni" name="dni" maxlength="10" autocomplete="off">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email">
+        <label for="fecha">Fecha de nacimiento</label>
+        <input type="date" id="fecha" name="fecha" autocomplete="bday">
+      </div>
+      <label for="usuario">Usuario</label>
+      <input type="text" id="usuario" name="usuario" autocomplete="username">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" name="password" autocomplete="current-password">
+      <div class="error-msg" id="error-msg"></div>
+      <button type="submit" id="submit-btn">Ingresar</button>
+    </form>
+    <span class="toggle-link" id="toggle-link">¿No tienes cuenta? Regístrate</span>
+  </div>
+  <script>
+    const form = document.getElementById('login-form');
+    const registerFields = document.getElementById('register-fields');
+    const toggleLink = document.getElementById('toggle-link');
+    const formTitle = document.getElementById('form-title');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMsg = document.getElementById('error-msg');
+    let isRegister = false;
+
+    toggleLink.onclick = function() {
+      isRegister = !isRegister;
+      registerFields.style.display = isRegister ? 'block' : 'none';
+      formTitle.textContent = isRegister ? 'Registro de Usuario' : 'Iniciar Sesión';
+      submitBtn.textContent = isRegister ? 'Registrarme' : 'Ingresar';
+      toggleLink.textContent = isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+      errorMsg.textContent = '';
+    };
+
+    form.onsubmit = async function(e) {
+      e.preventDefault();
+      errorMsg.textContent = '';
+      if(isRegister) {
+        // Validación simple de registro
+        const nombre = form.nombre.value.trim();
+        const apellido = form.apellido.value.trim();
+        const dni = form.dni.value.trim();
+        const email = form.email.value.trim();
+        const fecha = form.fecha.value;
+        const password = form.password.value;
+        if(!nombre || !apellido || !dni || !email || !fecha || !password) {
+          errorMsg.textContent = 'Completa todos los campos.';
+          return;
+        }
+        if(password.length < 6) {
+          errorMsg.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+          return;
+        }
+        // Registro real con backend
+        try {
+          const res = await fetch('http://localhost:3001/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, apellido, dni, email, fecha, password })
+          });
+          const data = await res.json();
+          if(data.success) {
+            alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
+            toggleLink.onclick(); // Cambia a login
+            form.reset();
+          } else {
+            errorMsg.textContent = data.error || 'Error en el registro.';
+          }
+        } catch (err) {
+          errorMsg.textContent = 'Error de conexión con el servidor.';
+        }
+      } else {
+        // Login real con backend
+        const usuario = form.usuario.value.trim();
+        const password = form.password.value;
+        if(!usuario || !password) {
+          errorMsg.textContent = 'Completa usuario y contraseña.';
+          return;
+        }
+        try {
+          const res = await fetch('http://localhost:3001/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario, password })
+          });
+          const data = await res.json();
+          if(data.success) {
+            // Guardar usuario en localStorage y redirigir al calendario
+            localStorage.setItem('usuario', JSON.stringify(data.user));
+            window.location.href = 'index.html';
+          } else {
+            errorMsg.textContent = data.error || 'Error al iniciar sesión.';
+          }
+        } catch (err) {
+          errorMsg.textContent = 'Error de conexión con el servidor.';
+        }
+      }
+    };
+  </script>
+</body>
+</html>

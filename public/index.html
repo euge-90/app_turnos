@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva de Turnos - Peluquería</title>
+    <link rel="stylesheet" href="css/turnos-calendar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>✂️ Mi Peluquería</h2>
+            </div>
+            <div class="nav-menu">
+                <span id="userNameNav" class="user-name"></span>
+                <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Sección Mis Turnos Activos -->
+        <section class="mis-turnos-section">
+            <h2>Mis Turnos Activos</h2>
+            <div id="misTurnosContainer" class="mis-turnos-container">
+                <div class="loading">Cargando tus turnos...</div>
+            </div>
+        </section>
+
+        <!-- Sección Reservar Turno -->
+        <section class="reservar-section">
+            <h2>Reservar Nuevo Turno</h2>
+
+            <!-- Selector de Servicio -->
+            <div class="servicio-selector">
+                <h3>Selecciona el Servicio</h3>
+                <div id="serviciosContainer" class="servicios-grid"></div>
+            </div>
+
+            <!-- Calendario -->
+            <div class="calendar-section">
+                <h3>Selecciona el Día</h3>
+                <div class="calendar-controls">
+                    <button id="prevMonthBtn" class="btn-month">←</button>
+                    <h4 id="currentMonth"></h4>
+                    <button id="nextMonthBtn" class="btn-month">→</button>
+                </div>
+                <div id="calendarContainer" class="calendar-grid"></div>
+                <div class="calendar-legend">
+                    <span class="legend-item"><span class="dot disponible"></span> Disponible</span>
+                    <span class="legend-item"><span class="dot completo"></span> Completo</span>
+                    <span class="legend-item"><span class="dot no-laboral"></span> Cerrado</span>
+                </div>
+            </div>
+
+            <!-- Horarios Disponibles -->
+            <div id="horariosSection" class="horarios-section" style="display: none;">
+                <h3>Horarios Disponibles - <span id="fechaSeleccionada"></span></h3>
+                <div id="horariosContainer" class="horarios-grid"></div>
+            </div>
+
+            <!-- Confirmación -->
+            <div id="confirmacionSection" class="confirmacion-section" style="display: none;">
+                <h3>Confirmar Reserva</h3>
+                <div class="confirmacion-detalle">
+                    <p><strong>Servicio:</strong> <span id="confirmServicio"></span></p>
+                    <p><strong>Fecha:</strong> <span id="confirmFecha"></span></p>
+                    <p><strong>Hora:</strong> <span id="confirmHora"></span></p>
+                    <p><strong>Duración:</strong> <span id="confirmDuracion"></span> minutos</p>
+                    <p><strong>Precio:</strong> $<span id="confirmPrecio"></span></p>
+                </div>
+                <div class="confirmacion-actions">
+                    <button id="confirmarReservaBtn" class="btn-primary">Confirmar Reserva</button>
+                    <button id="cancelarReservaBtn" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>📍 Dirección: Av. Principal 1234, CABA</p>
+            <p>📞 Teléfono: (011) 1234-5678</p>
+            <p>⏰ Horario: Martes a Sábado 9:00 - 18:00</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- App Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Peluquería</title>
+    <link rel="stylesheet" href="css/turnos-calendar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>✂️ Panel de Administración</h2>
+            </div>
+            <div class="nav-menu">
+                <span id="adminNameNav" class="user-name"></span>
+                <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container admin-container">
+        <!-- Estadísticas -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Turnos Hoy</h3>
+                    <p class="stat-number" id="turnosHoy">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Turnos Semana</h3>
+                    <p class="stat-number" id="turnosSemana">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Turnos Mes</h3>
+                    <p class="stat-number" id="turnosMes">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Clientes</h3>
+                    <p class="stat-number" id="totalClientes">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs de navegación -->
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" data-tab="agenda">Agenda del Día</button>
+            <button class="admin-tab-btn" data-tab="semana">Vista Semanal</button>
+            <button class="admin-tab-btn" data-tab="buscar">Buscar</button>
+            <button class="admin-tab-btn" data-tab="config">Configuración</button>
+        </div>
+
+        <!-- Agenda del Día -->
+        <section id="agendaTab" class="admin-tab-content active">
+            <div class="agenda-header">
+                <h2>Agenda - <span id="fechaAgenda"></span></h2>
+                <div class="agenda-controls">
+                    <button id="prevDayBtn" class="btn-secondary">← Día Anterior</button>
+                    <button id="todayBtn" class="btn-primary">Hoy</button>
+                    <button id="nextDayBtn" class="btn-secondary">Día Siguiente →</button>
+                </div>
+            </div>
+            <div id="agendaContainer" class="agenda-container"></div>
+        </section>
+
+        <!-- Vista Semanal -->
+        <section id="semanaTab" class="admin-tab-content">
+            <div class="semana-header">
+                <h2>Semana del <span id="fechaSemana"></span></h2>
+                <div class="semana-controls">
+                    <button id="prevWeekBtn" class="btn-secondary">← Semana Anterior</button>
+                    <button id="thisWeekBtn" class="btn-primary">Esta Semana</button>
+                    <button id="nextWeekBtn" class="btn-secondary">Semana Siguiente →</button>
+                </div>
+            </div>
+            <div id="semanaContainer" class="semana-container"></div>
+        </section>
+
+        <!-- Búsqueda -->
+        <section id="buscarTab" class="admin-tab-content">
+            <h2>Buscar Turnos</h2>
+            <div class="search-form">
+                <input type="text" id="searchInput" placeholder="Buscar por nombre o email del cliente...">
+                <button id="searchBtn" class="btn-primary">Buscar</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </section>
+
+        <!-- Configuración -->
+        <section id="configTab" class="admin-tab-content">
+            <h2>Configuración</h2>
+
+            <div class="config-section">
+                <h3>Bloquear Fechas</h3>
+                <p>Bloquea días específicos (vacaciones, feriados, etc.)</p>
+                <div class="block-date-form">
+                    <input type="date" id="blockDate">
+                    <input type="text" id="blockReason" placeholder="Motivo (opcional)">
+                    <button id="blockDateBtn" class="btn-primary">Bloquear Fecha</button>
+                </div>
+                <div id="blockedDatesContainer" class="blocked-dates-list"></div>
+            </div>
+
+            <div class="config-section">
+                <h3>Exportar Datos</h3>
+                <p>Descarga los turnos del mes en formato CSV</p>
+                <div class="export-form">
+                    <select id="exportMonth">
+                        <option value="0">Enero</option>
+                        <option value="1">Febrero</option>
+                        <option value="2">Marzo</option>
+                        <option value="3">Abril</option>
+                        <option value="4">Mayo</option>
+                        <option value="5">Junio</option>
+                        <option value="6">Julio</option>
+                        <option value="7">Agosto</option>
+                        <option value="8">Septiembre</option>
+                        <option value="9">Octubre</option>
+                        <option value="10">Noviembre</option>
+                        <option value="11">Diciembre</option>
+                    </select>
+                    <select id="exportYear"></select>
+                    <button id="exportBtn" class="btn-primary">Exportar CSV</button>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Servicios Más Solicitados</h3>
+                <div id="serviciosStats" class="servicios-stats"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- App Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

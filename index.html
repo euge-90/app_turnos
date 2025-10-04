@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turnos Peluquería</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="turnos-calendar.css">
+</head>
+<body>
+  <div class="container">
+    <button id="logout-btn" style="float:right;margin:10px 0 0 0;">Cerrar sesión</button>
+    <h1 align="center">Turnera para Peluquería</h1>
+    <h2>Reservá tu turno para SEPTIEMBRE 2025</h2>
+  <div id="calendar"></div>
+  <button id="toggle-slots" class="toggle-slots-btn" style="display:none;margin:0 auto 18px auto;">Ocultar horarios</button>
+  <div id="slots" class="slots"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // Botón de cerrar sesión
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      // Borra datos de sesión si usas localStorage/sessionStorage
+      localStorage.clear();
+      sessionStorage.clear();
+      // Redirige a login.html
+      window.location.href = 'login.html';
+    });
+
+    // Configuración
+    const minHour = 9;
+    const maxHour = 18;
+    const interval = 30; // minutos
+    const openDays = [2,3,4,5,6]; // martes a sábado (0=domingo, 1=lunes)
+    let booked = {};
+    let selectedDate = null;
+
+    // Helpers
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+    function pad(n) { return n < 10 ? '0'+n : n; }
+    function formatDate(date) {
+      return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate());
+    }
+    function isOpenDay(date) {
+      return openDays.includes(date.getDay());
+    }
+    function getSlots(date) {
+      const slots = [];
+      for(let h = minHour; h < maxHour; h++) {
+        for(let m = 0; m < 60; m += interval) {
+          const slot = pad(h)+":"+pad(m);
+          if(!booked[formatDate(date)] || !booked[formatDate(date)].includes(slot)) {
+            slots.push(slot);
+          }
+        }
+      }
+      return slots;
+    }
+
+    // Render calendario tipo tabla (mes actual)
+    function renderCalendar() {
+      const cal = document.getElementById('calendar');
+      cal.innerHTML = '';
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const days = getDaysInMonth(year, month);
+      const firstDay = new Date(year, month, 1).getDay();
+      const weekDays = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+      let table = document.createElement('table');
+      table.className = 'calendar-table';
+      let thead = document.createElement('thead');
+      let tr = document.createElement('tr');
+      weekDays.forEach(d => {
+        let th = document.createElement('th');
+        th.textContent = d;
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      let tbody = document.createElement('tbody');
+      let row = document.createElement('tr');
+      let dayOfWeek = firstDay;
+      if(dayOfWeek === 0) dayOfWeek = 7; // lunes como primer día
+      // Agregar celdas vacías al principio si el mes no empieza en domingo
+      for(let i=1; i<dayOfWeek; i++) {
+        row.appendChild(document.createElement('td'));
+      }
+      let col = dayOfWeek === 7 ? 0 : dayOfWeek - 1; // columna actual (0=lunes)
+      for(let d=1; d<=days; d++) {
+        const date = new Date(year, month, d);
+        let td = document.createElement('td');
+        td.textContent = d;
+        if(!isOpenDay(date) || (date < new Date(today.getFullYear(), today.getMonth(), today.getDate()))) {
+          td.className = 'disabled';
+        } else {
+          td.onclick = () => selectDate(date);
+          if(selectedDate && selectedDate.getDate() === d && selectedDate.getMonth() === month) {
+            td.className = 'selected';
+          }
+        }
+        if(date.toDateString() === new Date().toDateString()) {
+          td.classList.add('today');
+        }
+        row.appendChild(td);
+        col++;
+        if(col % 7 === 0) {
+          tbody.appendChild(row);
+          row = document.createElement('tr');
+        }
+      }
+      if(row.children.length > 0) tbody.appendChild(row);
+      table.appendChild(tbody);
+      cal.appendChild(table);
+    }
+
+    function selectDate(date) {
+      selectedDate = date;
+      // Marcar seleccionado
+      document.querySelectorAll('.day').forEach((el, idx) => {
+        el.classList.toggle('selected', idx+1 === date.getDate());
+      });
+      // Mostrar horarios y botón al seleccionar día
+      const slotsDiv = document.getElementById('slots');
+      const toggleBtn = document.getElementById('toggle-slots');
+      slotsDiv.style.display = 'flex';
+      toggleBtn.style.display = 'block';
+      renderSlots();
+    }
+
+    function renderSlots() {
+      const slotsDiv = document.getElementById('slots');
+      const toggleBtn = document.getElementById('toggle-slots');
+      slotsDiv.innerHTML = '';
+      slotsDiv.style.display = 'flex';
+      if(!selectedDate) {
+        toggleBtn.style.display = 'none';
+        return;
+      }
+      const slots = getSlots(selectedDate);
+      if(slots.length === 0) {
+        slotsDiv.innerHTML = '<span>No hay horarios disponibles.</span>';
+        toggleBtn.style.display = 'block';
+        return;
+      }
+      slots.forEach(slot => {
+        const btn = document.createElement('button');
+        btn.className = 'slot';
+        btn.textContent = slot;
+        btn.onclick = () => confirmSlot(slot);
+        slotsDiv.appendChild(btn);
+      });
+      toggleBtn.style.display = 'block';
+    }
+
+    // Mostrar/ocultar horarios
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleBtn = document.getElementById('toggle-slots');
+      const slotsDiv = document.getElementById('slots');
+      toggleBtn.style.display = 'none';
+      toggleBtn.textContent = 'Ocultar horarios';
+      toggleBtn.addEventListener('click', function() {
+        slotsDiv.style.display = 'none';
+        toggleBtn.style.display = 'none';
+      });
+    });
+
+    function confirmSlot(slot) {
+      Swal.fire({
+        title: '¿Confirmar turno?',
+        text: `Reservar para el ${formatDate(selectedDate)} a las ${slot}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
+      }).then((result) => {
+        if(result.isConfirmed) {
+          // Guardar turno en memoria (solo frontend)
+          const key = formatDate(selectedDate);
+          if(!booked[key]) booked[key] = [];
+          booked[key].push(slot);
+          Swal.fire('¡Turno reservado!', '', 'success');
+          // Ocultar horarios y botón después de reservar
+          const slotsDiv = document.getElementById('slots');
+          const toggleBtn = document.getElementById('toggle-slots');
+          slotsDiv.style.display = 'none';
+          toggleBtn.style.display = 'none';
+          renderSlots();
+        }
+      });
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>
