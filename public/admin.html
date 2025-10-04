@@ -48,6 +48,7 @@
             <button class="admin-tab-btn active" data-tab="agenda">Agenda del Día</button>
             <button class="admin-tab-btn" data-tab="semana">Vista Semanal</button>
             <button class="admin-tab-btn" data-tab="buscar">Buscar</button>
+            <button class="admin-tab-btn" data-tab="servicios">Servicios</button>
             <button class="admin-tab-btn" data-tab="config">Configuración</button>
         </div>
 
@@ -85,6 +86,26 @@
                 <button id="searchBtn" class="btn-primary">Buscar</button>
             </div>
             <div id="searchResults" class="search-results"></div>
+        </section>
+
+        <!-- Gestión de Servicios -->
+        <section id="serviciosTab" class="admin-tab-content">
+            <h2>Gestión de Servicios</h2>
+
+            <div class="config-section">
+                <h3>Crear Nuevo Servicio</h3>
+                <div class="service-form">
+                    <input type="text" id="serviceNombre" placeholder="Nombre del servicio">
+                    <input type="number" id="serviceDuracion" placeholder="Duración (minutos)" min="15" step="15">
+                    <input type="number" id="servicePrecio" placeholder="Precio" min="0" step="100">
+                    <button id="createServiceBtn" class="btn-primary">Crear Servicio</button>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Servicios Actuales</h3>
+                <div id="serviciosListContainer" class="servicios-list"></div>
+            </div>
         </section>
 
         <!-- Configuración -->

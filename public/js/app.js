@@ -444,18 +444,38 @@ async function cancelarTurnoUI(turnoId) {
     }
 }
 
+// Cargar servicios desde Firestore
+async function cargarServiciosDesdeFirestore() {
+    try {
+        const snapshot = await db.collection('servicios')
+            .where('activo', '==', true)
+            .get();
+
+        if (!snapshot.empty) {
+            const servicios = snapshot.docs.map(doc => doc.data());
+            CONFIG.servicios = servicios.sort((a, b) => a.precio - b.precio);
+            window.CONFIG = CONFIG;
+        }
+    } catch (error) {
+        console.error('Error al cargar servicios:', error);
+    }
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar que estamos en index.html
     if (!document.getElementById('serviciosContainer')) return;
 
     // Mostrar nombre del usuario
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             const userName = document.getElementById('userNameNav');
             if (userName) {
                 userName.textContent = user.displayName || user.email;
             }
+
+            // Cargar servicios desde Firestore
+            await cargarServiciosDesdeFirestore();
 
             // Inicializar UI
             UI.renderServicios();

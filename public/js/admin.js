@@ -214,6 +214,95 @@ const AdminManager = {
             servicio: Utils.getServicio(id),
             cantidad: count
         })).sort((a, b) => b.cantidad - a.cantidad);
+    },
+
+    // Crear nuevo servicio
+    async crearServicio(nombre, duracion, precio) {
+        const servicioId = nombre.toLowerCase().replace(/\s+/g, '-');
+
+        await db.collection('servicios').doc(servicioId).set({
+            id: servicioId,
+            nombre: nombre,
+            duracion: parseInt(duracion),
+            precio: parseInt(precio),
+            activo: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Recargar servicios en CONFIG
+        await this.cargarServicios();
+    },
+
+    // Actualizar servicio existente
+    async actualizarServicio(servicioId, nombre, duracion, precio) {
+        await db.collection('servicios').doc(servicioId).update({
+            nombre: nombre,
+            duracion: parseInt(duracion),
+            precio: parseInt(precio),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Recargar servicios en CONFIG
+        await this.cargarServicios();
+    },
+
+    // Eliminar servicio
+    async eliminarServicio(servicioId) {
+        // Verificar si hay turnos activos con este servicio
+        const turnosActivos = await db.collection('turnos')
+            .where('servicio.id', '==', servicioId)
+            .where('estado', '==', 'confirmado')
+            .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(new Date()))
+            .get();
+
+        if (!turnosActivos.empty) {
+            throw new Error('No se puede eliminar un servicio con turnos activos');
+        }
+
+        await db.collection('servicios').doc(servicioId).delete();
+
+        // Recargar servicios en CONFIG
+        await this.cargarServicios();
+    },
+
+    // Cargar servicios desde Firestore
+    async cargarServicios() {
+        const snapshot = await db.collection('servicios')
+            .where('activo', '==', true)
+            .get();
+
+        const servicios = [];
+
+        snapshot.docs.forEach(doc => {
+            servicios.push(doc.data());
+        });
+
+        // Si no hay servicios en Firestore, usar los servicios por defecto
+        if (servicios.length === 0) {
+            CONFIG.servicios.forEach(async (servicio) => {
+                await db.collection('servicios').doc(servicio.id).set({
+                    ...servicio,
+                    activo: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            return CONFIG.servicios;
+        }
+
+        // Actualizar CONFIG con los servicios de Firestore
+        CONFIG.servicios = servicios.sort((a, b) => a.precio - b.precio);
+        window.CONFIG = CONFIG;
+
+        return servicios;
+    },
+
+    // Obtener todos los servicios
+    async obtenerServicios() {
+        const snapshot = await db.collection('servicios')
+            .where('activo', '==', true)
+            .get();
+
+        return snapshot.docs.map(doc => doc.data());
     }
 };
 
@@ -263,7 +352,7 @@ const AdminUI = {
                         <p>Duración: ${servicio.duracion} min | Precio: $${servicio.precio.toLocaleString('es-AR')}</p>
                     </div>
                     <div class="turno-actions">
-                        <button class="btn-danger btn-small" onclick="cancelarTurnoAdmin('${turno.id}')">Cancelar</button>
+                        <button class="btn-danger btn-small" onclick="eliminarTurnoAdmin('${turno.id}')">Eliminar</button>
                     </div>
                 `;
 
@@ -409,22 +498,68 @@ const AdminUI = {
         } catch (error) {
             console.error('Error al cargar estadísticas de servicios:', error);
         }
+    },
+
+    // Renderizar lista de servicios
+    async renderServicios() {
+        const container = document.getElementById('serviciosListContainer');
+
+        try {
+            const servicios = await AdminManager.obtenerServicios();
+
+            if (servicios.length === 0) {
+                container.innerHTML = '<p style="color: #757575;">No hay servicios disponibles</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            servicios.forEach(servicio => {
+                const item = document.createElement('div');
+                item.className = 'service-item';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.padding = '1rem';
+                item.style.background = '#f5f5f5';
+                item.style.borderRadius = '8px';
+                item.style.marginBottom = '0.75rem';
+
+                item.innerHTML = `
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0;">${servicio.nombre}</h4>
+                        <p style="margin: 0; color: #757575; font-size: 0.9rem;">
+                            Duración: ${servicio.duracion} min | Precio: $${servicio.precio.toLocaleString('es-AR')}
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-primary btn-small" onclick="editarServicioUI('${servicio.id}')">Editar</button>
+                        <button class="btn-danger btn-small" onclick="eliminarServicioUI('${servicio.id}')">Eliminar</button>
+                    </div>
+                `;
+
+                container.appendChild(item);
+            });
+        } catch (error) {
+            console.error('Error al cargar servicios:', error);
+            container.innerHTML = '<p style="color: #f44336;">Error al cargar servicios</p>';
+        }
     }
 };
 
-// Cancelar turno (admin)
-async function cancelarTurnoAdmin(turnoId) {
+// Eliminar turno (admin)
+async function eliminarTurnoAdmin(turnoId) {
     const result = await Utils.confirmar(
-        '¿Cancelar Turno?',
-        'Esta acción cancelará el turno del cliente.'
+        '¿Eliminar Turno?',
+        'Esta acción eliminará permanentemente el turno del cliente. El cliente no recibirá notificación.'
     );
 
     if (result.isConfirmed) {
         try {
-            Utils.showLoading('Cancelando turno...');
+            Utils.showLoading('Eliminando turno...');
             await AdminManager.cancelarTurno(turnoId);
             Utils.closeLoading();
-            await Utils.showSuccess('Turno Cancelado', 'El turno ha sido cancelado');
+            await Utils.showSuccess('Turno Eliminado', 'El turno ha sido eliminado correctamente');
             AdminUI.renderAgenda();
             AdminUI.renderEstadisticas();
         } catch (error) {
@@ -447,6 +582,70 @@ async function desbloquearFechaUI(bloqueadoId) {
             await Utils.showSuccess('Fecha Desbloqueada', 'La fecha está ahora disponible');
             AdminUI.renderFechasBloqueadas();
         } catch (error) {
+            Utils.showError('Error', error.message);
+        }
+    }
+}
+
+// Editar servicio
+async function editarServicioUI(servicioId) {
+    const servicio = CONFIG.servicios.find(s => s.id === servicioId);
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Editar Servicio',
+        html: `
+            <input id="swal-nombre" class="swal2-input" placeholder="Nombre" value="${servicio.nombre}">
+            <input id="swal-duracion" type="number" class="swal2-input" placeholder="Duración (min)" value="${servicio.duracion}">
+            <input id="swal-precio" type="number" class="swal2-input" placeholder="Precio" value="${servicio.precio}">
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            return {
+                nombre: document.getElementById('swal-nombre').value,
+                duracion: document.getElementById('swal-duracion').value,
+                precio: document.getElementById('swal-precio').value
+            };
+        }
+    });
+
+    if (formValues) {
+        if (!formValues.nombre || !formValues.duracion || !formValues.precio) {
+            Utils.showError('Error', 'Todos los campos son obligatorios');
+            return;
+        }
+
+        try {
+            Utils.showLoading('Actualizando servicio...');
+            await AdminManager.actualizarServicio(servicioId, formValues.nombre, formValues.duracion, formValues.precio);
+            Utils.closeLoading();
+            await Utils.showSuccess('Servicio Actualizado', 'El servicio ha sido actualizado correctamente');
+            AdminUI.renderServicios();
+        } catch (error) {
+            Utils.closeLoading();
+            Utils.showError('Error', error.message);
+        }
+    }
+}
+
+// Eliminar servicio
+async function eliminarServicioUI(servicioId) {
+    const result = await Utils.confirmar(
+        '¿Eliminar Servicio?',
+        'Esta acción eliminará el servicio. No se puede eliminar si hay turnos activos.'
+    );
+
+    if (result.isConfirmed) {
+        try {
+            Utils.showLoading('Eliminando servicio...');
+            await AdminManager.eliminarServicio(servicioId);
+            Utils.closeLoading();
+            await Utils.showSuccess('Servicio Eliminado', 'El servicio ha sido eliminado correctamente');
+            AdminUI.renderServicios();
+        } catch (error) {
+            Utils.closeLoading();
             Utils.showError('Error', error.message);
         }
     }
@@ -502,6 +701,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentWeekStart = new Date();
                 currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
                 AdminUI.renderSemana();
+            } else if (tab === 'servicios') {
+                AdminUI.renderServicios();
             }
         });
     });
@@ -573,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>${servicio.nombre} | $${servicio.precio.toLocaleString('es-AR')}</p>
                     </div>
                     <div class="turno-actions">
-                        <button class="btn-danger btn-small" onclick="cancelarTurnoAdmin('${turno.id}')">Cancelar</button>
+                        <button class="btn-danger btn-small" onclick="eliminarTurnoAdmin('${turno.id}')">Eliminar</button>
                     </div>
                 `;
 
@@ -630,6 +831,45 @@ document.addEventListener('DOMContentLoaded', () => {
             Utils.descargarCSV(turnos, filename);
             Utils.closeLoading();
             Utils.showSuccess('Exportado', 'El archivo ha sido descargado');
+        } catch (error) {
+            Utils.closeLoading();
+            Utils.showError('Error', error.message);
+        }
+    });
+
+    // Crear servicio
+    document.getElementById('createServiceBtn').addEventListener('click', async () => {
+        const nombre = document.getElementById('serviceNombre').value.trim();
+        const duracion = document.getElementById('serviceDuracion').value;
+        const precio = document.getElementById('servicePrecio').value;
+
+        if (!nombre || !duracion || !precio) {
+            Utils.showError('Error', 'Todos los campos son obligatorios');
+            return;
+        }
+
+        if (duracion < 15) {
+            Utils.showError('Error', 'La duración mínima es 15 minutos');
+            return;
+        }
+
+        if (precio < 0) {
+            Utils.showError('Error', 'El precio debe ser mayor o igual a 0');
+            return;
+        }
+
+        try {
+            Utils.showLoading('Creando servicio...');
+            await AdminManager.crearServicio(nombre, duracion, precio);
+            Utils.closeLoading();
+            await Utils.showSuccess('Servicio Creado', 'El servicio ha sido creado correctamente');
+
+            // Limpiar formulario
+            document.getElementById('serviceNombre').value = '';
+            document.getElementById('serviceDuracion').value = '';
+            document.getElementById('servicePrecio').value = '';
+
+            AdminUI.renderServicios();
         } catch (error) {
             Utils.closeLoading();
             Utils.showError('Error', error.message);
