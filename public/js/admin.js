@@ -274,42 +274,67 @@ const AdminManager = {
 
     // Cargar servicios desde Firestore
     async cargarServicios() {
-        const snapshot = await db.collection('servicios')
-            .where('activo', '==', true)
-            .get();
+        try {
+            const snapshot = await db.collection('servicios')
+                .where('activo', '==', true)
+                .get();
 
-        const servicios = [];
+            const servicios = [];
 
-        snapshot.docs.forEach(doc => {
-            servicios.push(doc.data());
-        });
-
-        // Si no hay servicios en Firestore, usar los servicios por defecto
-        if (servicios.length === 0) {
-            CONFIG.servicios.forEach(async (servicio) => {
-                await db.collection('servicios').doc(servicio.id).set({
-                    ...servicio,
-                    activo: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            snapshot.docs.forEach(doc => {
+                servicios.push(doc.data());
             });
+
+            // Si no hay servicios en Firestore, migrar los servicios por defecto
+            if (servicios.length === 0) {
+                console.log('Migrando servicios por defecto a Firestore...');
+
+                // Usar Promise.all para esperar todas las operaciones
+                await Promise.all(CONFIG.servicios.map(servicio =>
+                    db.collection('servicios').doc(servicio.id).set({
+                        ...servicio,
+                        activo: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    })
+                ));
+
+                console.log('Servicios migrados exitosamente');
+                return CONFIG.servicios;
+            }
+
+            // Actualizar CONFIG con los servicios de Firestore
+            CONFIG.servicios = servicios.sort((a, b) => a.precio - b.precio);
+            window.CONFIG = CONFIG;
+
+            return servicios;
+        } catch (error) {
+            console.error('Error al cargar servicios:', error);
+            // Si hay error, retornar los servicios por defecto
             return CONFIG.servicios;
         }
-
-        // Actualizar CONFIG con los servicios de Firestore
-        CONFIG.servicios = servicios.sort((a, b) => a.precio - b.precio);
-        window.CONFIG = CONFIG;
-
-        return servicios;
     },
 
     // Obtener todos los servicios
     async obtenerServicios() {
-        const snapshot = await db.collection('servicios')
-            .where('activo', '==', true)
-            .get();
+        try {
+            const snapshot = await db.collection('servicios')
+                .where('activo', '==', true)
+                .get();
 
-        return snapshot.docs.map(doc => doc.data());
+            const servicios = snapshot.docs.map(doc => doc.data());
+
+            // Si no hay servicios en Firestore, retornar los de CONFIG
+            if (servicios.length === 0) {
+                console.log('No hay servicios en Firestore, retornando servicios por defecto');
+                return CONFIG.servicios;
+            }
+
+            return servicios;
+        } catch (error) {
+            console.error('Error al obtener servicios:', error);
+            // Si hay error, retornar los servicios por defecto de CONFIG
+            return CONFIG.servicios;
+        }
     }
 };
 
@@ -513,18 +538,26 @@ const AdminUI = {
     // Renderizar lista de servicios
     async renderServicios() {
         const container = document.getElementById('serviciosListContainer');
+        container.innerHTML = '<div class="loading">Cargando servicios...</div>';
 
         try {
             const servicios = await AdminManager.obtenerServicios();
 
-            if (servicios.length === 0) {
-                container.innerHTML = '<p style="color: #757575;">No hay servicios disponibles</p>';
+            console.log('Servicios obtenidos:', servicios);
+
+            if (!servicios || servicios.length === 0) {
+                container.innerHTML = '<p style="color: #757575;">No hay servicios disponibles. Crea uno nuevo arriba.</p>';
                 return;
             }
 
             container.innerHTML = '';
 
             servicios.forEach(servicio => {
+                if (!servicio || !servicio.id) {
+                    console.error('Servicio inválido:', servicio);
+                    return;
+                }
+
                 const item = document.createElement('div');
                 item.className = 'service-item';
                 item.style.display = 'flex';
@@ -551,8 +584,11 @@ const AdminUI = {
                 container.appendChild(item);
             });
         } catch (error) {
-            console.error('Error al cargar servicios:', error);
-            container.innerHTML = '<p style="color: #f44336;">Error al cargar servicios</p>';
+            console.error('Error completo al cargar servicios:', error);
+            container.innerHTML = `
+                <p style="color: #f44336;">Error al cargar servicios: ${error.message}</p>
+                <p style="color: #757575; font-size: 0.9rem;">Revisa la consola para más detalles</p>
+            `;
         }
     }
 };
