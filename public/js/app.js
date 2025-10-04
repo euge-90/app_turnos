@@ -21,38 +21,55 @@ class GestorTurnos {
             }
         }
 
-        // Obtener turnos ocupados de Firebase
-        const inicio = new Date(fecha);
-        inicio.setHours(0, 0, 0, 0);
-        const fin = new Date(fecha);
-        fin.setHours(23, 59, 59, 999);
+        try {
+            // Obtener turnos ocupados de Firebase
+            const inicio = new Date(fecha);
+            inicio.setHours(0, 0, 0, 0);
+            const fin = new Date(fecha);
+            fin.setHours(23, 59, 59, 999);
 
-        const snapshot = await db.collection('turnos')
-            .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
-            .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
-            .where('estado', '==', 'confirmado')
-            .get();
+            const snapshot = await db.collection('turnos')
+                .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
+                .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
+                .get();
 
-        const ocupados = new Set(snapshot.docs.map(doc => doc.data().hora));
+            // Filtrar solo los confirmados y obtener horas ocupadas
+            const ocupados = new Set(
+                snapshot.docs
+                    .filter(doc => doc.data().estado === 'confirmado')
+                    .map(doc => doc.data().hora)
+            );
 
-        // Generar horarios disponibles
-        const horarios = [];
-        for (let hora = CONFIG.horaApertura; hora < CONFIG.horaCierre; hora++) {
-            for (let minuto = 0; minuto < 60; minuto += CONFIG.intervaloMinutos) {
-                const horaStr = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-                if (!ocupados.has(horaStr)) {
+            // Generar horarios disponibles
+            const horarios = [];
+            for (let hora = CONFIG.horaApertura; hora < CONFIG.horaCierre; hora++) {
+                for (let minuto = 0; minuto < 60; minuto += CONFIG.intervaloMinutos) {
+                    const horaStr = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+                    if (!ocupados.has(horaStr)) {
+                        horarios.push(horaStr);
+                    }
+                }
+            }
+
+            // Guardar en cache
+            this.cache.set(cacheKey, {
+                horarios,
+                timestamp: Date.now()
+            });
+
+            return horarios;
+        } catch (error) {
+            console.error('Error al obtener horarios:', error);
+            // Si hay error, devolver horarios vacíos o todos los disponibles
+            const horarios = [];
+            for (let hora = CONFIG.horaApertura; hora < CONFIG.horaCierre; hora++) {
+                for (let minuto = 0; minuto < 60; minuto += CONFIG.intervaloMinutos) {
+                    const horaStr = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
                     horarios.push(horaStr);
                 }
             }
+            return horarios;
         }
-
-        // Guardar en cache
-        this.cache.set(cacheKey, {
-            horarios,
-            timestamp: Date.now()
-        });
-
-        return horarios;
     }
 
     // Reservar turno
