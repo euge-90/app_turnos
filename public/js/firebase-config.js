@@ -23,7 +23,7 @@ const CONFIG = {
     intervaloMinutos: 30,
     diasLaborales: [2, 3, 4, 5, 6], // Martes (2) a Sábado (6) - 0=Domingo, 1=Lunes
     maxTurnosPorUsuario: 3,
-    diasAnticipacion: 30,
+    diasAnticipacion: 90, // 3 meses de anticipación
     servicios: [
         { id: 'corte', nombre: 'Corte de Cabello', duracion: 30, precio: 2000 },
         { id: 'corte-barba', nombre: 'Corte + Barba', duracion: 45, precio: 2800 },

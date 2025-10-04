@@ -282,6 +282,8 @@ const UI = {
 
         for (let day = 1; day <= lastDay.getDate(); day++) {
             const fecha = new Date(year, month, day);
+            fecha.setHours(0, 0, 0, 0); // Normalizar la hora para comparación exacta
+
             const dayEl = document.createElement('div');
             dayEl.className = 'calendar-day';
             dayEl.textContent = day;
@@ -289,10 +291,15 @@ const UI = {
             // Verificar si es día laboral
             const esLaboral = Utils.esDiaLaboral(fecha);
 
-            // Verificar si está en el rango permitido
+            // Verificar si está en el rango permitido (desde hoy hasta maxDate)
             const enRango = fecha >= today && fecha <= maxDate;
 
-            if (!esLaboral || !enRango) {
+            // Marcar días pasados
+            if (fecha < today) {
+                dayEl.classList.add('no-laboral');
+            } else if (!esLaboral) {
+                dayEl.classList.add('no-laboral');
+            } else if (!enRango) {
                 dayEl.classList.add('no-laboral');
             } else {
                 dayEl.classList.add('disponible');
