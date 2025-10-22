@@ -985,7 +985,30 @@ async function cargarHistorial() {
             period: periodFilter
         });
 
-        // Calcular estadísticas
+        // Renderizar lista - Verificar si hay turnos PRIMERO
+        if (turnos.length === 0) {
+            // Ocultar estadísticas si no hay turnos
+            historialStats.innerHTML = '';
+
+            // Mostrar mensaje amigable con estado vacío
+            historialList.innerHTML = `
+                <div style="text-align: center; padding: 3rem 1rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
+                    <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">No hay turnos en tu historial</h3>
+                    <p style="color: var(--text-light); margin-bottom: 1.5rem;">
+                        ${statusFilter !== 'all' || periodFilter !== 'all'
+                            ? 'Intenta ajustar los filtros para ver más resultados'
+                            : 'Tus turnos completados y cancelados aparecerán aquí'}
+                    </p>
+                    ${statusFilter !== 'all' || periodFilter !== 'all'
+                        ? '<button class="btn-secondary" onclick="document.getElementById(\'statusFilter\').value=\'all\'; document.getElementById(\'periodFilter\').value=\'all\'; cargarHistorial();">Limpiar Filtros</button>'
+                        : '<button class="btn-primary" onclick="document.querySelectorAll(\'.tab-btn\')[0].click();">Reservar un Turno</button>'}
+                </div>
+            `;
+            return;
+        }
+
+        // Calcular estadísticas (solo si hay turnos)
         const stats = {
             total: turnos.length,
             completed: turnos.filter(t => t.estado === 'completed').length,
@@ -1010,12 +1033,6 @@ async function cargarHistorial() {
                 </div>
             </div>
         `;
-
-        // Renderizar lista
-        if (turnos.length === 0) {
-            historialList.innerHTML = '<p style="text-align: center; color: #757575; padding: 2rem;">No hay turnos en el historial con los filtros seleccionados</p>';
-            return;
-        }
 
         historialList.innerHTML = '';
 
@@ -1074,12 +1091,25 @@ async function cargarHistorial() {
 // REQ-V2-05: Cargar perfil de usuario
 async function cargarPerfil() {
     const perfilContainer = document.querySelector('.perfil-container');
+
+    if (!perfilContainer) {
+        console.error('Error: No se encontró el contenedor del perfil');
+        return;
+    }
+
     perfilContainer.innerHTML = '<div class="loading">Cargando perfil...</div>';
 
     try {
         const user = auth.currentUser;
         if (!user) {
-            perfilContainer.innerHTML = '<p style="text-align: center; color: #f44336;">Error: Usuario no autenticado</p>';
+            perfilContainer.innerHTML = `
+                <div style="text-align: center; padding: 3rem 1rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;">👤</div>
+                    <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">Error: Usuario no autenticado</h3>
+                    <p style="color: var(--text-light); margin-bottom: 1.5rem;">Debes iniciar sesión para ver tu perfil</p>
+                    <button class="btn-primary" onclick="window.location.href='login.html'">Iniciar Sesión</button>
+                </div>
+            `;
             return;
         }
 
@@ -1193,7 +1223,16 @@ async function cargarPerfil() {
 
     } catch (error) {
         console.error('Error al cargar perfil:', error);
-        perfilContainer.innerHTML = '<p style="text-align: center; color: #f44336;">Error al cargar el perfil</p>';
+        perfilContainer.innerHTML = `
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;">⚠️</div>
+                <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">Error al cargar tu perfil</h3>
+                <p style="color: var(--text-light); margin-bottom: 1.5rem;">
+                    Ocurrió un problema al cargar tu información. Por favor, intenta nuevamente.
+                </p>
+                <button class="btn-primary" onclick="cargarPerfil()">Reintentar</button>
+            </div>
+        `;
     }
 }
 
@@ -1568,28 +1607,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetTab = button.dataset.tab;
+    if (tabButtons.length > 0) {
+        console.log('Inicializando tabs:', tabButtons.length, 'botones encontrados');
 
-            // Remover active de todos los botones y contenidos
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                console.log('Tab clickeado:', targetTab);
 
-            // Agregar active al botón clickeado y su contenido
-            button.classList.add('active');
-            document.getElementById(targetTab + 'Tab').classList.add('active');
+                // Remover active de todos los botones y contenidos
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
 
-            // Cargar contenido según el tab
-            if (targetTab === 'historial') {
-                cargarHistorial();
-            } else if (targetTab === 'perfil') {
-                cargarPerfil();
-            } else if (targetTab === 'turnos') {
-                Utils.toastInfo('📅 Mis Turnos Activos', 2000);
-            }
+                // Agregar active al botón clickeado y su contenido
+                button.classList.add('active');
+                const targetContent = document.getElementById(targetTab + 'Tab');
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                } else {
+                    console.error('No se encontró el contenido para la tab:', targetTab);
+                }
+
+                // Cargar contenido según el tab
+                if (targetTab === 'historial') {
+                    cargarHistorial();
+                } else if (targetTab === 'perfil') {
+                    cargarPerfil();
+                } else if (targetTab === 'turnos') {
+                    if (typeof Utils !== "undefined" && Utils.toastInfo) {
+                        Utils.toastInfo('📅 Mis Turnos Activos', 2000);
+                    }
+                }
+            });
         });
-    });
+    } else {
+        console.warn('No se encontraron botones de tabs');
+    }
 
     // Filtros de historial (V2)
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
