@@ -189,8 +189,33 @@ class GestorTurnos {
 
                 console.log('📝 Datos del turno a guardar:', datosTurno);
                 console.log('📝 Tipo de fecha:', fechaTimestamp.constructor.name);
+                console.log('📝 Verificar cada campo:');
+                console.log('  - id:', typeof datosTurno.id, datosTurno.id);
+                console.log('  - usuarioId:', typeof datosTurno.usuarioId, datosTurno.usuarioId);
+                console.log('  - usuarioNombre:', typeof datosTurno.usuarioNombre, datosTurno.usuarioNombre);
+                console.log('  - usuarioEmail:', typeof datosTurno.usuarioEmail, datosTurno.usuarioEmail);
+                console.log('  - fecha:', typeof datosTurno.fecha, datosTurno.fecha);
+                console.log('  - hora:', typeof datosTurno.hora, datosTurno.hora);
+                console.log('  - servicio:', typeof datosTurno.servicio, datosTurno.servicio);
+                console.log('  - estado:', typeof datosTurno.estado, datosTurno.estado);
+                console.log('  - createdAt:', datosTurno.createdAt);
 
-                transaction.set(turnoRef, datosTurno);
+                // Intentar con objeto completamente plano
+                const datosLimpios = {
+                    id: turnoRef.id,
+                    usuarioId: user.uid,
+                    usuarioNombre: user.displayName || 'Usuario',
+                    usuarioEmail: user.email,
+                    fecha: fechaTimestamp,
+                    hora: String(hora),
+                    servicio: JSON.parse(JSON.stringify(datosServicio)),
+                    estado: 'confirmado',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                console.log('🧹 Objeto ultra-limpio:', datosLimpios);
+
+                transaction.set(turnoRef, datosLimpios);
 
                 // 4. Actualizar contador de turnos del usuario
                 const userRef = db.collection('usuarios').doc(user.uid);
