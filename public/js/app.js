@@ -587,7 +587,7 @@ const UI = {
 
         fechaEl.textContent = Utils.formatearFecha(fecha);
         container.innerHTML = '<div class="loading">Cargando horarios...</div>';
-        section.style.display = 'block';
+        section.classList.remove('hidden');
 
         try {
             const horarios = await gestorTurnos.obtenerHorariosDisponibles(fecha);
@@ -708,7 +708,7 @@ const UI = {
         document.getElementById('confirmDuracion').textContent = servicio.duracion;
         document.getElementById('confirmPrecio').textContent = servicio.precio.toLocaleString('es-AR');
 
-        section.style.display = 'block';
+        section.classList.remove('hidden');
         section.scrollIntoView({ behavior: 'smooth' });
     },
 
@@ -1790,8 +1790,8 @@ document.addEventListener('DOMContentLoaded', () => {
             gestorTurnos.fechaSeleccionada = null;
             gestorTurnos.horaSeleccionada = null;
 
-            document.getElementById('confirmacionSection').style.display = 'none';
-            document.getElementById('horariosSection').style.display = 'none';
+            document.getElementById('confirmacionSection').classList.add('hidden');
+            document.getElementById('horariosSection').classList.add('hidden');
 
             // Actualizar UI
             await UI.renderMisTurnos();
@@ -1815,7 +1815,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Recargar horarios disponibles para la fecha seleccionada
                 gestorTurnos.horaSeleccionada = null;
-                document.getElementById('confirmacionSection').style.display = 'none';
+                document.getElementById('confirmacionSection').classList.add('hidden');
                 document.querySelectorAll('.horario-btn').forEach(b => b.classList.remove('selected'));
 
                 // Actualizar horarios disponibles
@@ -1832,7 +1832,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cancelar reserva
     document.getElementById('cancelarReservaBtn').addEventListener('click', () => {
         gestorTurnos.horaSeleccionada = null;
-        document.getElementById('confirmacionSection').style.display = 'none';
+        document.getElementById('confirmacionSection').classList.add('hidden');
         document.querySelectorAll('.horario-btn').forEach(b => b.classList.remove('selected'));
     });
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'turnify-v2-cache-v2';
+const CACHE_NAME = 'turnify-v2-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
