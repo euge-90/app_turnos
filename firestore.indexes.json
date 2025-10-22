@@ -39,6 +39,14 @@
       "collectionGroup": "turnos",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "estado", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "turnos",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "fecha", "order": "ASCENDING" },
         { "fieldPath": "estado", "order": "ASCENDING" },
         { "fieldPath": "hora", "order": "ASCENDING" }
