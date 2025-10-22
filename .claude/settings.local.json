@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"node --version\")",
+      "Bash(firebase deploy:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nCorregir configuración de índices de Firestore\n\nEliminar índice innecesario de fechasBloqueadas que causaba error en el deploy. Firestore maneja automáticamente índices de un solo campo.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
