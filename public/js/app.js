@@ -166,22 +166,31 @@ class GestorTurnos {
 
                 // 3. Crear el turno de forma atómica
                 const turnoRef = db.collection('turnos').doc();
-                transaction.set(turnoRef, {
+
+                // DEBUG: Construir objeto paso a paso
+                const datosServicio = {
+                    id: String(servicio.id),
+                    nombre: String(servicio.nombre),
+                    duracion: Number(servicio.duracion),
+                    precio: Number(servicio.precio)
+                };
+
+                const datosTurno = {
                     id: turnoRef.id,
                     usuarioId: user.uid,
                     usuarioNombre: user.displayName || 'Usuario',
                     usuarioEmail: user.email,
                     fecha: fechaTimestamp,
-                    hora: hora,
-                    servicio: {
-                        id: servicio.id,
-                        nombre: servicio.nombre,
-                        duracion: servicio.duracion,
-                        precio: servicio.precio
-                    },
+                    hora: String(hora),
+                    servicio: datosServicio,
                     estado: 'confirmado',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                };
+
+                console.log('📝 Datos del turno a guardar:', datosTurno);
+                console.log('📝 Tipo de fecha:', fechaTimestamp.constructor.name);
+
+                transaction.set(turnoRef, datosTurno);
 
                 // 4. Actualizar contador de turnos del usuario
                 const userRef = db.collection('usuarios').doc(user.uid);
@@ -1714,15 +1723,26 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             Utils.showLoading('Reservando turno...');
 
-            // Crear objeto limpio del servicio para evitar problemas de serialización
-            const servicioLimpio = {
+            // DEBUG: Ver todos los datos antes de limpiar
+            console.log('🔍 DEBUG - Datos originales:', {
+                servicio: gestorTurnos.servicioSeleccionado,
+                fecha: gestorTurnos.fechaSeleccionada,
+                hora: gestorTurnos.horaSeleccionada,
+                tipoFecha: typeof gestorTurnos.fechaSeleccionada,
+                tipoHora: typeof gestorTurnos.horaSeleccionada
+            });
+
+            // Crear objeto limpio del servicio usando JSON para eliminar TODAS las referencias
+            const servicioLimpio = JSON.parse(JSON.stringify({
                 id: gestorTurnos.servicioSeleccionado.id,
                 nombre: gestorTurnos.servicioSeleccionado.nombre,
                 duracion: gestorTurnos.servicioSeleccionado.duracion,
                 precio: gestorTurnos.servicioSeleccionado.precio
-            };
+            }));
 
             console.log('✅ Servicio limpio creado:', servicioLimpio);
+            console.log('✅ Tipo de servicio limpio:', typeof servicioLimpio);
+            console.log('✅ Keys del servicio:', Object.keys(servicioLimpio));
 
             await gestorTurnos.reservarTurno(
                 gestorTurnos.fechaSeleccionada,
