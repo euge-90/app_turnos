@@ -1714,10 +1714,20 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             Utils.showLoading('Reservando turno...');
 
+            // Crear objeto limpio del servicio para evitar problemas de serialización
+            const servicioLimpio = {
+                id: gestorTurnos.servicioSeleccionado.id,
+                nombre: gestorTurnos.servicioSeleccionado.nombre,
+                duracion: gestorTurnos.servicioSeleccionado.duracion,
+                precio: gestorTurnos.servicioSeleccionado.precio
+            };
+
+            console.log('✅ Servicio limpio creado:', servicioLimpio);
+
             await gestorTurnos.reservarTurno(
                 gestorTurnos.fechaSeleccionada,
                 gestorTurnos.horaSeleccionada,
-                gestorTurnos.servicioSeleccionado
+                servicioLimpio
             );
 
             Utils.closeLoading();
