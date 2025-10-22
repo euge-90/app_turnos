@@ -876,7 +876,7 @@ async function abrirModalModificar(turnoId, servicioId) {
             );
 
             // Actualizar UI
-            UI.renderMisTurnos();
+            await UI.renderMisTurnos();
             await UI.renderCalendario();
 
         } catch (error) {
@@ -1502,6 +1502,29 @@ async function eliminarCuenta() {
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // ========================================
+    // MODO OSCURO (V2) - Inicializar primero
+    // ========================================
+    const darkMode = localStorage.getItem("darkMode") === "true";
+    if (darkMode) {
+        document.body.classList.add("dark-mode");
+        updateDarkModeIcon();
+    }
+
+    // Toggle de modo oscuro
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("darkMode", isDark);
+            updateDarkModeIcon();
+            if (typeof Utils !== "undefined" && Utils.toastInfo) {
+                Utils.toastInfo(isDark ? "🌙 Modo oscuro activado" : "☀️ Modo claro activado", 2000);
+            }
+        });
+    }
+
     // Verificar que estamos en index.html
     if (!document.getElementById('serviciosContainer')) return;
 
@@ -1519,7 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Inicializar UI
             UI.renderServicios();
             await UI.renderCalendario();
-            UI.renderMisTurnos();
+            await UI.renderMisTurnos();
         }
     });
 
@@ -1626,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('horariosSection').style.display = 'none';
 
             // Actualizar UI
-            UI.renderMisTurnos();
+            await UI.renderMisTurnos();
             await UI.renderCalendario();
             document.querySelectorAll('.servicio-card').forEach(c => c.classList.remove('selected'));
             document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
@@ -1893,34 +1916,9 @@ async function mostrarModalListaEspera(fecha, hora, servicio) {
     }
 }
 
-
 // ========================================
-// MODO OSCURO (V2)
+// MODO OSCURO (V2) - Función auxiliar
 // ========================================
-
-// Inicializar modo oscuro desde localStorage
-document.addEventListener("DOMContentLoaded", () => {
-    const darkMode = localStorage.getItem("darkMode") === "true";
-    if (darkMode) {
-        document.body.classList.add("dark-mode");
-        updateDarkModeIcon();
-    }
-
-    // Toggle de modo oscuro
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener("click", () => {
-            document.body.classList.toggle("dark-mode");
-            const isDark = document.body.classList.contains("dark-mode");
-            localStorage.setItem("darkMode", isDark);
-            updateDarkModeIcon();
-            if (typeof Utils !== "undefined" && Utils.toastInfo) {
-                Utils.toastInfo(isDark ? "🌙 Modo oscuro activado" : "☀️ Modo claro activado", 2000);
-            }
-        });
-    }
-});
-
 function updateDarkModeIcon() {
     const darkModeToggle = document.getElementById("darkModeToggle");
     if (darkModeToggle) {
