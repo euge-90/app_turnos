@@ -9,6 +9,52 @@ class GestorTurnos {
         this.currentMonth = new Date();
     }
 
+    // V2: Obtener cantidad de turnos por día del mes para badges
+    async obtenerTurnosPorDiaDelMes(year, month) {
+        const cacheKey = `turnos_mes_${year}_${month}`;
+
+        // Verificar cache
+        if (this.cache.has(cacheKey)) {
+            const cached = this.cache.get(cacheKey);
+            if (Date.now() - cached.timestamp < this.cacheTimeout) {
+                return cached.data;
+            }
+        }
+
+        try {
+            const inicio = new Date(year, month, 1);
+            inicio.setHours(0, 0, 0, 0);
+            const fin = new Date(year, month + 1, 0);
+            fin.setHours(23, 59, 59, 999);
+
+            const snapshot = await db.collection('turnos')
+                .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
+                .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
+                .where('estado', '==', 'confirmado')
+                .get();
+
+            // Contar turnos por día
+            const turnosPorDia = {};
+            snapshot.docs.forEach(doc => {
+                const turno = doc.data();
+                const fecha = turno.fecha.toDate();
+                const dia = fecha.getDate();
+                turnosPorDia[dia] = (turnosPorDia[dia] || 0) + 1;
+            });
+
+            // Guardar en cache
+            this.cache.set(cacheKey, {
+                data: turnosPorDia,
+                timestamp: Date.now()
+            });
+
+            return turnosPorDia;
+        } catch (error) {
+            console.error('Error al obtener turnos del mes:', error);
+            return {};
+        }
+    }
+
     // Obtener horarios disponibles para una fecha
     async obtenerHorariosDisponibles(fecha) {
         const cacheKey = fecha.toDateString();
@@ -345,8 +391,8 @@ const UI = {
         });
     },
 
-    // Renderizar calendario
-    renderCalendario() {
+    // Renderizar calendario (V2 - Mejorado con badges)
+    async renderCalendario() {
         const container = document.getElementById('calendarContainer');
         const currentMonthEl = document.getElementById('currentMonth');
 
@@ -359,6 +405,9 @@ const UI = {
         });
 
         container.innerHTML = '';
+
+        // V2: Obtener cantidad de turnos por día del mes para badges
+        const turnosPorDia = await gestorTurnos.obtenerTurnosPorDiaDelMes(year, month);
 
         // Headers de días
         const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -394,7 +443,18 @@ const UI = {
 
             const dayEl = document.createElement('div');
             dayEl.className = 'calendar-day';
-            dayEl.textContent = day;
+
+            // V2: Agregar badge con cantidad de turnos
+            const cantidadTurnos = turnosPorDia[day] || 0;
+            if (cantidadTurnos > 0) {
+                const badgeClass = cantidadTurnos <= 2 ? 'turnos-bajo' : cantidadTurnos <= 4 ? 'turnos-medio' : 'turnos-alto';
+                dayEl.innerHTML = `
+                    <span class="day-number">${day}</span>
+                    <span class="turnos-badge ${badgeClass}">${cantidadTurnos}</span>
+                `;
+            } else {
+                dayEl.textContent = day;
+            }
 
             // Verificar si es día laboral
             const esLaboral = Utils.esDiaLaboral(fecha);
@@ -486,6 +546,77 @@ const UI = {
                 return;
             }
 
+            // V2: Horarios sugeridos inteligentes
+            const sugeridos = [];
+
+            // Primer horario disponible
+            if (horarios.length > 0) {
+                sugeridos.push({ hora: horarios[0], tipo: 'Primer horario' });
+            }
+
+            // Horario cerca del mediodía (12:00-14:00)
+            const medioDia = horarios.find(h => {
+                const [hora] = h.split(':').map(Number);
+                return hora >= 12 && hora <= 14;
+            });
+            if (medioDia && !sugeridos.find(s => s.hora === medioDia)) {
+                sugeridos.push({ hora: medioDia, tipo: 'Mediodía' });
+            }
+
+            // Último horario disponible
+            if (horarios.length > 1 && !sugeridos.find(s => s.hora === horarios[horarios.length - 1])) {
+                sugeridos.push({ hora: horarios[horarios.length - 1], tipo: 'Último horario' });
+            }
+
+            // Mostrar horarios sugeridos
+            if (sugeridos.length > 0) {
+                const sugeridosSection = document.createElement('div');
+                sugeridosSection.className = 'horarios-sugeridos';
+                sugeridosSection.innerHTML = '<h4 style="margin: 0 0 1rem 0; color: var(--primary-color);">⭐ Horarios Sugeridos</h4>';
+
+                sugeridos.forEach(({ hora, tipo }) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'horario-btn horario-sugerido';
+                    btn.innerHTML = `
+                        <span class="hora-principal">${hora}</span>
+                        <span class="hora-tipo">${tipo}</span>
+                    `;
+
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.horario-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        gestorTurnos.horaSeleccionada = hora;
+                        Utils.toastSuccess(`🕐 Horario ${hora} seleccionado`, 2000);
+                        UI.mostrarConfirmacion();
+                    });
+
+                    sugeridosSection.appendChild(btn);
+                });
+
+                container.appendChild(sugeridosSection);
+            }
+
+            // Sección "Ver todos los horarios"
+            const todosSection = document.createElement('div');
+            todosSection.className = 'todos-horarios';
+            todosSection.style.marginTop = '1.5rem';
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn-secondary';
+            toggleBtn.textContent = `Ver todos los horarios (${horarios.length})`;
+            toggleBtn.style.width = '100%';
+
+            const horariosGrid = document.createElement('div');
+            horariosGrid.className = 'horarios-grid';
+            horariosGrid.style.display = 'none';
+            horariosGrid.style.marginTop = '1rem';
+
+            toggleBtn.addEventListener('click', () => {
+                const isVisible = horariosGrid.style.display !== 'none';
+                horariosGrid.style.display = isVisible ? 'none' : 'grid';
+                toggleBtn.textContent = isVisible ? `Ver todos los horarios (${horarios.length})` : 'Ocultar horarios';
+            });
+
             horarios.forEach(hora => {
                 const btn = document.createElement('button');
                 btn.className = 'horario-btn';
@@ -499,8 +630,12 @@ const UI = {
                     UI.mostrarConfirmacion();
                 });
 
-                container.appendChild(btn);
+                horariosGrid.appendChild(btn);
             });
+
+            todosSection.appendChild(toggleBtn);
+            todosSection.appendChild(horariosGrid);
+            container.appendChild(todosSection);
         } catch (error) {
             container.innerHTML = '<p style="text-align: center; color: #f44336;">Error al cargar horarios</p>';
             console.error('Error:', error);
@@ -591,7 +726,7 @@ async function cancelarTurnoUI(turnoId) {
             Utils.closeLoading();
             await Utils.showSuccess('¡Turno Cancelado!', 'Tu turno ha sido cancelado correctamente');
             UI.renderMisTurnos();
-            UI.renderCalendario();
+            await UI.renderCalendario();
         } catch (error) {
             Utils.closeLoading();
             Utils.showError('Error', error.message);
@@ -742,7 +877,7 @@ async function abrirModalModificar(turnoId, servicioId) {
 
             // Actualizar UI
             UI.renderMisTurnos();
-            UI.renderCalendario();
+            await UI.renderCalendario();
 
         } catch (error) {
             Utils.closeLoading();
@@ -1383,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Inicializar UI
             UI.renderServicios();
-            UI.renderCalendario();
+            await UI.renderCalendario();
             UI.renderMisTurnos();
         }
     });
@@ -1439,7 +1574,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         if (firstDayOfPrevMonth >= firstDayOfCurrentMonth) {
             gestorTurnos.currentMonth = prevMonth;
-            UI.renderCalendario();
+            await UI.renderCalendario();
         }
     });
 
@@ -1459,7 +1594,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Permitir navegación si el primer día del mes está dentro del rango
         if (firstDayOfNextMonth <= maxDate) {
             gestorTurnos.currentMonth = nextMonth;
-            UI.renderCalendario();
+            await UI.renderCalendario();
         }
     });
 
@@ -1492,7 +1627,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Actualizar UI
             UI.renderMisTurnos();
-            UI.renderCalendario();
+            await UI.renderCalendario();
             document.querySelectorAll('.servicio-card').forEach(c => c.classList.remove('selected'));
             document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
 
@@ -1755,5 +1890,42 @@ async function mostrarModalListaEspera(fecha, hora, servicio) {
             Utils.closeLoading();
             Utils.showError('Error', error.message);
         }
+    }
+}
+
+
+// ========================================
+// MODO OSCURO (V2)
+// ========================================
+
+// Inicializar modo oscuro desde localStorage
+document.addEventListener("DOMContentLoaded", () => {
+    const darkMode = localStorage.getItem("darkMode") === "true";
+    if (darkMode) {
+        document.body.classList.add("dark-mode");
+        updateDarkModeIcon();
+    }
+
+    // Toggle de modo oscuro
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("darkMode", isDark);
+            updateDarkModeIcon();
+            if (typeof Utils !== "undefined" && Utils.toastInfo) {
+                Utils.toastInfo(isDark ? "🌙 Modo oscuro activado" : "☀️ Modo claro activado", 2000);
+            }
+        });
+    }
+});
+
+function updateDarkModeIcon() {
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        const isDark = document.body.classList.contains("dark-mode");
+        darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+        darkModeToggle.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
     }
 }

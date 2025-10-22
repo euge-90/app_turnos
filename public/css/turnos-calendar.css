@@ -18,6 +18,17 @@
     --transition: all 0.3s ease;
 }
 
+/* V2: Modo Oscuro */
+body.dark-mode {
+    --text-dark: #e0e0e0;
+    --text-light: #b0b0b0;
+    --bg-light: #1e1e1e;
+    --bg-white: #2d2d2d;
+    --border-color: #404040;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
 /* Reset */
 * {
     margin: 0;
@@ -88,6 +99,27 @@ body {
 
 .btn-logout:hover {
     background: #d32f2f;
+}
+
+/* V2: Botón de modo oscuro */
+.btn-dark-mode {
+    padding: 0.6rem;
+    border: none;
+    border-radius: var(--border-radius);
+    background: var(--bg-light);
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: var(--transition);
+    border: 2px solid var(--border-color);
+}
+
+.btn-dark-mode:hover {
+    background: var(--border-color);
+    transform: scale(1.1);
+}
+
+body.dark-mode .btn-dark-mode {
+    background: var(--bg-white);
 }
 
 .btn-primary {
@@ -313,6 +345,45 @@ section h3 {
     border-color: var(--primary-dark);
 }
 
+/* V2: Badges de cantidad de turnos en calendario */
+.calendar-day {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.day-number {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.turnos-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.turnos-badge.turnos-bajo {
+    background: var(--success-color);
+}
+
+.turnos-badge.turnos-medio {
+    background: var(--warning-color);
+}
+
+.turnos-badge.turnos-alto {
+    background: var(--danger-color);
+}
+
 .calendar-legend {
     display: flex;
     gap: 1.5rem;
@@ -374,6 +445,54 @@ section h3 {
     border-color: var(--primary-dark);
 }
 
+/* V2: Horarios sugeridos */
+.horarios-sugeridos {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-radius: var(--border-radius);
+    border: 2px dashed var(--warning-color);
+}
+
+.horario-sugerido {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem;
+    background: white;
+    border: 2px solid var(--warning-color);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.horario-sugerido:hover {
+    border-color: var(--warning-color);
+    background: #fff8e1;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.horario-sugerido.selected {
+    background: var(--warning-color);
+    color: white;
+    border-color: #f57c00;
+}
+
+.hora-principal {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.hora-tipo {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.horarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.75rem;
+}
+
 /* Confirmación */
 .confirmacion-detalle {
     background: var(--bg-light);
@@ -425,6 +544,31 @@ section h3 {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
     padding: 2.5rem;
+    position: relative;
+}
+
+/* V2: Botón modo oscuro en login */
+.btn-dark-mode-login {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    background: var(--bg-light);
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: var(--transition);
+    border: 2px solid var(--border-color);
+}
+
+.btn-dark-mode-login:hover {
+    background: var(--border-color);
+    transform: scale(1.1);
+}
+
+body.dark-mode .btn-dark-mode-login {
+    background: var(--bg-white);
 }
 
 .login-header {

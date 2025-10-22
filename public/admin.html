@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Turnify V2</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Turnify">
     <link rel="stylesheet" href="css/turnos-calendar.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -16,6 +21,7 @@
             </div>
             <div class="nav-menu">
                 <span id="adminNameNav" class="user-name"></span>
+                <button id="darkModeToggle" class="btn-dark-mode" title="Cambiar tema">🌙</button>
                 <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
             </div>
         </div>
