@@ -1500,16 +1500,34 @@ async function eliminarCuenta() {
     }
 }
 
+// ========================================
+// MODO OSCURO (V2) - Función auxiliar
+// ========================================
+function updateDarkModeIcon() {
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        const isDark = document.body.classList.contains("dark-mode");
+        darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+        darkModeToggle.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+    }
+}
+
+// ========================================
+// INICIALIZAR MODO OSCURO (ejecutar inmediatamente, antes de DOMContentLoaded)
+// ========================================
+// Aplicar modo oscuro antes de que la página se renderice para evitar flash
+const darkMode = localStorage.getItem("darkMode") === "true";
+if (darkMode) {
+    document.documentElement.classList.add("dark-mode");
+    document.body.classList.add("dark-mode");
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     // ========================================
-    // MODO OSCURO (V2) - Inicializar primero
+    // MODO OSCURO (V2) - Registrar event listener
     // ========================================
-    const darkMode = localStorage.getItem("darkMode") === "true";
-    if (darkMode) {
-        document.body.classList.add("dark-mode");
-        updateDarkModeIcon();
-    }
+    updateDarkModeIcon(); // Actualizar ícono al cargar
 
     // Toggle de modo oscuro
     const darkModeToggle = document.getElementById("darkModeToggle");
@@ -1525,7 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Verificar que estamos en index.html
+    // Verificar que estamos en index.html (página principal con turnos)
     if (!document.getElementById('serviciosContainer')) return;
 
     // Mostrar nombre del usuario
@@ -1913,17 +1931,5 @@ async function mostrarModalListaEspera(fecha, hora, servicio) {
             Utils.closeLoading();
             Utils.showError('Error', error.message);
         }
-    }
-}
-
-// ========================================
-// MODO OSCURO (V2) - Función auxiliar
-// ========================================
-function updateDarkModeIcon() {
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    if (darkModeToggle) {
-        const isDark = document.body.classList.contains("dark-mode");
-        darkModeToggle.textContent = isDark ? "☀️" : "🌙";
-        darkModeToggle.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
     }
 }
