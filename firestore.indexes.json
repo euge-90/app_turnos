@@ -43,13 +43,6 @@
         { "fieldPath": "estado", "order": "ASCENDING" },
         { "fieldPath": "hora", "order": "ASCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "fechasBloqueadas",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "fecha", "order": "DESCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []
