@@ -127,6 +127,7 @@
 
     <!-- App Scripts -->
     <script src="js/firebase-config.js"></script>
+    <script src="js/validation.js"></script>
     <script src="js/auth.js"></script>
 
     <script>
@@ -143,26 +144,20 @@
             });
         });
 
-        // Password strength indicator
+        // Password strength indicator (usando módulo Validaciones)
         const registerPassword = document.getElementById('registerPassword');
         const strengthBar = document.querySelector('.strength-bar');
 
         registerPassword.addEventListener('input', (e) => {
             const password = e.target.value;
-            let strength = 0;
 
-            if (password.length >= 6) strength++;
-            if (password.length >= 10) strength++;
-            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            // Usar el módulo de validaciones
+            const strengthData = Validaciones.calculatePasswordStrength(password);
 
+            // Actualizar barra de fortaleza
+            strengthBar.style.width = strengthData.percentage + '%';
+            strengthBar.style.backgroundColor = strengthData.color;
             strengthBar.className = 'strength-bar';
-            if (strength <= 1) strengthBar.classList.add('weak');
-            else if (strength <= 3) strengthBar.classList.add('medium');
-            else strengthBar.classList.add('strong');
-
-            strengthBar.style.width = (strength * 20) + '%';
         });
 
         // Forgot password

@@ -2,54 +2,190 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Funciones helper
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
+
+    // Verificar si el usuario está autenticado
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    // Verificar si el usuario es dueño del documento
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
+    // Verificar si el usuario es administrador
+    // Verifica el email del token de autenticación
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'admin@peluqueria.com';
+      return isAuthenticated() &&
+             request.auth.token.email == 'admin@peluqueria.com';
     }
 
-    // Reglas para usuarios
+    // Verificar si una fecha (Timestamp) es futura
+    function isFutureDate(dateTimestamp) {
+      return dateTimestamp >= request.time;
+    }
+
+    // Verificar si la fecha de un turno es pasada
+    function isPastAppointment(turnoData) {
+      let fechaTurno = turnoData.fecha;
+      let hoy = request.time;
+      // Si la fecha del turno es menor que hoy, es pasado
+      return fechaTurno < hoy;
+    }
+
+    // ========================================
+    // USUARIOS (Collection: usuarios)
+    // ========================================
     match /usuarios/{userId} {
+      // Lectura: El usuario puede leer su propio documento o el admin puede leer cualquiera
       allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
-      allow create: if isAuthenticated() && isOwner(userId);
-      allow update: if isAuthenticated() && isOwner(userId);
-      allow delete: if false;
+
+      // Creación: El usuario puede crear su propio documento al registrarse
+      // No puede incluir campos sensibles como isAdmin
+      allow create: if isAuthenticated() &&
+                       isOwner(userId) &&
+                       !request.resource.data.keys().hasAny(['isAdmin', 'admin']) &&
+                       request.resource.data.keys().hasAll(['nombre', 'email']);
+
+      // Actualización: El usuario puede actualizar su propio documento
+      // No puede modificar email, isAdmin u otros campos sensibles
+      allow update: if isAuthenticated() &&
+                       isOwner(userId) &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['email', 'isAdmin', 'admin', 'fechaRegistro']);
+
+      // Eliminación: Solo el admin o el propio usuario pueden eliminar su cuenta
+      allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
     }
 
-    // Reglas para turnos
+    // ========================================
+    // TURNOS (Collection: turnos)
+    // ========================================
     match /turnos/{turnoId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
-        && request.resource.data.usuarioId == request.auth.uid
-        && request.resource.data.estado == 'confirmado';
-      allow update: if isAuthenticated()
-        && (resource.data.usuarioId == request.auth.uid || isAdmin());
+      // Lectura: El usuario puede leer sus propios turnos o el admin puede leer todos
+      allow read: if isAuthenticated() &&
+                     (resource.data.usuarioId == request.auth.uid || isAdmin());
+
+      // Creación: El usuario puede crear turnos solo para sí mismo
+      // VALIDACIONES CRÍTICAS (soluciona BUG-003):
+      // - La fecha debe ser futura (no se permiten turnos en fechas pasadas)
+      // - Debe incluir todos los campos obligatorios
+      // - El estado debe ser 'confirmado' al crear
+      // - El usuarioId debe coincidir con el usuario autenticado
+      // - El servicio debe tener estructura válida
+      allow create: if isAuthenticated() &&
+                       request.resource.data.usuarioId == request.auth.uid &&
+                       isFutureDate(request.resource.data.fecha) &&
+                       request.resource.data.keys().hasAll([
+                         'usuarioId',
+                         'usuarioNombre',
+                         'usuarioEmail',
+                         'fecha',
+                         'hora',
+                         'servicio',
+                         'estado',
+                         'createdAt'
+                       ]) &&
+                       request.resource.data.estado == 'confirmado' &&
+                       request.resource.data.servicio is map &&
+                       request.resource.data.servicio.keys().hasAll(['id', 'nombre', 'duracion', 'precio']);
+
+      // Actualización: El usuario puede actualizar/cancelar sus propios turnos
+      // El admin puede actualizar cualquier turno
+      // RESTRICCIONES:
+      // - Los usuarios solo pueden cambiar el estado a 'cancelado'
+      // - Los usuarios pueden modificar fecha/hora (para función de modificación)
+      // - No se pueden modificar turnos pasados (excepto admin)
+      allow update: if isAuthenticated() &&
+                       (
+                         // Usuario dueño del turno
+                         (
+                           resource.data.usuarioId == request.auth.uid &&
+                           !isPastAppointment(resource.data) &&
+                           (
+                             // Cancelación
+                             (request.resource.data.estado == 'cancelado' &&
+                              resource.data.estado == 'confirmado') ||
+                             // Modificación de fecha/hora
+                             (request.resource.data.estado == 'confirmado' &&
+                              resource.data.estado == 'confirmado' &&
+                              isFutureDate(request.resource.data.fecha))
+                           )
+                         ) ||
+                         // Admin puede hacer cualquier modificación
+                         isAdmin()
+                       );
+
+      // Eliminación: Solo el admin puede eliminar turnos físicamente
+      // Los usuarios deben usar cancelación (cambiar estado)
       allow delete: if isAdmin();
     }
 
-    // Configuración global (solo lectura)
+    // ========================================
+    // SERVICIOS (Collection: servicios)
+    // ========================================
+    match /servicios/{servicioId} {
+      // Lectura: Cualquier usuario autenticado puede ver los servicios
+      allow read: if isAuthenticated();
+
+      // Validación de estructura al crear/actualizar
+      // - Debe tener nombre, duracion, precio y activo
+      function isValidService() {
+        return request.resource.data.keys().hasAll(['nombre', 'duracion', 'precio', 'activo']) &&
+               request.resource.data.duracion is int &&
+               request.resource.data.duracion > 0 &&
+               request.resource.data.precio is number &&
+               request.resource.data.precio >= 0;
+      }
+
+      // Crear, actualizar y eliminar: Solo el admin
+      allow create: if isAdmin() && isValidService();
+      allow update: if isAdmin() && isValidService();
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // FECHAS BLOQUEADAS (Collection: fechasBloqueadas)
+    // ========================================
+    match /fechasBloqueadas/{fechaId} {
+      // Lectura: Cualquier usuario autenticado puede ver fechas bloqueadas
+      allow read: if isAuthenticated();
+
+      // Crear, actualizar y eliminar: Solo el admin
+      allow create: if isAdmin() &&
+                       request.resource.data.keys().hasAll(['fecha']);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ========================================
+    // CONFIGURACIÓN GLOBAL (Collection: configuracion)
+    // ========================================
     match /configuracion/{documento} {
+      // Lectura: Todos pueden leer la configuración pública
       allow read: if true;
+
+      // Escritura: Solo el admin
       allow write: if isAdmin();
     }
 
-    // Fechas bloqueadas
-    match /fechasBloqueadas/{documento} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Estadísticas (solo admin)
+    // ========================================
+    // ESTADÍSTICAS (Collection: estadisticas)
+    // ========================================
     match /estadisticas/{documento} {
+      // Lectura: Solo el admin
       allow read: if isAdmin();
+
+      // Escritura: Bloqueada (se genera automáticamente)
       allow write: if false;
     }
+
+    // ========================================
+    // BLOQUEAR TODO LO DEMÁS
+    // ========================================
+    // Por defecto, todo lo demás está bloqueado
+    // Esto es una buena práctica de seguridad
   }
 }

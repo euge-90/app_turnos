@@ -134,6 +134,12 @@ if (document.getElementById('loginForm')) {
     const loginError = document.getElementById('loginError');
     const loginSubmitBtn = document.getElementById('loginSubmitBtn');
 
+    // Validación en tiempo real para login
+    loginEmail.addEventListener('blur', () => {
+        const validation = Validaciones.validateEmail(loginEmail.value);
+        Validaciones.updateFieldStatus('loginEmail', validation);
+    });
+
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -144,10 +150,21 @@ if (document.getElementById('loginForm')) {
         loginError.style.display = 'none';
         loginError.textContent = '';
 
-        // Validación básica
-        if (!email || !password) {
-            loginError.textContent = 'Por favor completa todos los campos';
+        // Validar con módulo Validaciones
+        const validation = Validaciones.validateLoginForm({ email, password });
+
+        if (!validation.valid) {
+            const errorMessages = Object.values(validation.errors).join('. ');
+            loginError.textContent = errorMessages;
             loginError.style.display = 'block';
+
+            // Actualizar estado de campos
+            if (validation.errors.email) {
+                Validaciones.updateFieldStatus('loginEmail', {
+                    valid: false,
+                    message: validation.errors.email
+                });
+            }
             return;
         }
 
@@ -177,71 +194,46 @@ if (document.getElementById('registerForm')) {
     const registerError = document.getElementById('registerError');
     const registerSubmitBtn = document.getElementById('registerSubmitBtn');
 
-    // Validación en tiempo real
+    // Validación en tiempo real usando módulo Validaciones
     registerName.addEventListener('blur', () => {
-        const error = document.getElementById('registerNameError');
-        if (registerName.value.trim().length < 3) {
-            error.textContent = 'El nombre debe tener al menos 3 caracteres';
-            error.classList.add('show');
-        } else {
-            error.classList.remove('show');
-        }
+        const validation = Validaciones.validateName(registerName.value);
+        Validaciones.updateFieldStatus('registerName', validation);
     });
 
     registerEmail.addEventListener('blur', () => {
-        const error = document.getElementById('registerEmailError');
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(registerEmail.value)) {
-            error.textContent = 'Email inválido';
-            error.classList.add('show');
-        } else {
-            error.classList.remove('show');
-        }
+        const validation = Validaciones.validateEmail(registerEmail.value);
+        Validaciones.updateFieldStatus('registerEmail', validation);
     });
 
+    // Formatear teléfono mientras se escribe
     registerPhone.addEventListener('input', (e) => {
-        // Formatear teléfono argentino
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 10) value = value.slice(0, 10);
-
-        if (value.length >= 6) {
-            value = `(${value.slice(0, 3)}) ${value.slice(3, 7)}-${value.slice(7)}`;
-        } else if (value.length >= 3) {
-            value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+        const limpio = Validaciones.cleanPhone(e.target.value);
+        if (limpio.length <= 10) {
+            e.target.value = Validaciones.formatPhone(limpio);
         }
-
-        e.target.value = value;
     });
 
     registerPhone.addEventListener('blur', () => {
-        const error = document.getElementById('registerPhoneError');
-        const phoneDigits = registerPhone.value.replace(/\D/g, '');
-        if (phoneDigits.length < 10) {
-            error.textContent = 'Teléfono inválido';
-            error.classList.add('show');
-        } else {
-            error.classList.remove('show');
-        }
+        const validation = Validaciones.validatePhone(registerPhone.value);
+        Validaciones.updateFieldStatus('registerPhone', validation);
+    });
+
+    registerPassword.addEventListener('input', () => {
+        const validation = Validaciones.validatePassword(registerPassword.value);
+        Validaciones.updateFieldStatus('registerPassword', validation);
     });
 
     registerPassword.addEventListener('blur', () => {
-        const error = document.getElementById('registerPasswordError');
-        if (registerPassword.value.length < 6) {
-            error.textContent = 'La contraseña debe tener al menos 6 caracteres';
-            error.classList.add('show');
-        } else {
-            error.classList.remove('show');
-        }
+        const validation = Validaciones.validatePassword(registerPassword.value);
+        Validaciones.updateFieldStatus('registerPassword', validation);
     });
 
     registerPasswordConfirm.addEventListener('blur', () => {
-        const error = document.getElementById('registerPasswordConfirmError');
-        if (registerPasswordConfirm.value !== registerPassword.value) {
-            error.textContent = 'Las contraseñas no coinciden';
-            error.classList.add('show');
-        } else {
-            error.classList.remove('show');
-        }
+        const validation = Validaciones.validatePasswordConfirm(
+            registerPassword.value,
+            registerPasswordConfirm.value
+        );
+        Validaciones.updateFieldStatus('registerPasswordConfirm', validation);
     });
 
     registerForm.addEventListener('submit', async (e) => {

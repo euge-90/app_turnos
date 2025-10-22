@@ -23,7 +23,7 @@ const CONFIG = {
     intervaloMinutos: 30,
     diasLaborales: [2, 3, 4, 5, 6], // Martes (2) a Sábado (6) - 0=Domingo, 1=Lunes
     maxTurnosPorUsuario: 3,
-    diasAnticipacion: 90, // 3 meses de anticipación
+    diasAnticipacion: 120, // 4 meses de anticipación (V2: cambiado de 90 a 120 días)
     servicios: [
         { id: 'corte', nombre: 'Corte de Cabello', duracion: 30, precio: 2000 },
         { id: 'corte-barba', nombre: 'Corte + Barba', duracion: 45, precio: 2800 },
@@ -166,6 +166,61 @@ const Utils = {
         }
 
         return csvRows.join('\n');
+    },
+
+    // ========================================
+    // TOAST NOTIFICATIONS (V2)
+    // ========================================
+
+    /**
+     * Mostrar toast notification
+     * @param {string} message - Mensaje a mostrar
+     * @param {string} type - Tipo: 'success', 'error', 'info', 'warning'
+     * @param {number} duration - Duración en ms (default: 3000)
+     */
+    showToast(message, type = 'info', duration = 3000) {
+        // Configuración de colores según tipo
+        const colors = {
+            success: 'linear-gradient(to right, #4caf50, #45a049)',
+            error: 'linear-gradient(to right, #f44336, #d32f2f)',
+            info: 'linear-gradient(to right, #2196f3, #1976d2)',
+            warning: 'linear-gradient(to right, #ff9800, #f57c00)'
+        };
+
+        Toastify({
+            text: message,
+            duration: duration,
+            close: true,
+            gravity: 'top',
+            position: 'right',
+            stopOnFocus: true,
+            style: {
+                background: colors[type] || colors.info,
+                borderRadius: '8px',
+                padding: '12px 20px',
+                fontSize: '0.95rem',
+                fontWeight: '500',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+            },
+            onClick: function() {}
+        }).showToast();
+    },
+
+    // Atajos para tipos específicos de toast
+    toastSuccess(message, duration = 3000) {
+        this.showToast(message, 'success', duration);
+    },
+
+    toastError(message, duration = 3000) {
+        this.showToast(message, 'error', duration);
+    },
+
+    toastInfo(message, duration = 3000) {
+        this.showToast(message, 'info', duration);
+    },
+
+    toastWarning(message, duration = 3000) {
+        this.showToast(message, 'warning', duration);
     }
 };
 

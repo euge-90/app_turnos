@@ -7,6 +7,7 @@
     <title>Reserva de Turnos - Peluquería</title>
     <link rel="stylesheet" href="css/turnos-calendar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -21,9 +22,20 @@
         </div>
     </nav>
 
+    <!-- Tabs de navegación -->
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="turnos">Mis Turnos</button>
+            <button class="tab-btn" data-tab="historial">📜 Historial</button>
+            <button class="tab-btn" data-tab="perfil">👤 Mi Perfil</button>
+        </div>
+    </div>
+
     <main class="container">
-        <!-- Sección Mis Turnos Activos -->
-        <section class="mis-turnos-section">
+        <!-- TAB: Mis Turnos -->
+        <div id="turnosTab" class="tab-content active">
+            <!-- Sección Mis Turnos Activos -->
+            <section class="mis-turnos-section">
             <h2>Mis Turnos Activos</h2>
             <div id="misTurnosContainer" class="mis-turnos-container">
                 <div class="loading">Cargando tus turnos...</div>
@@ -78,6 +90,60 @@
                 </div>
             </div>
         </section>
+        </div>
+        <!-- Fin TAB: Mis Turnos -->
+
+        <!-- TAB: Historial -->
+        <div id="historialTab" class="tab-content" style="display: none;">
+            <section class="historial-section">
+                <h2>📜 Historial de Turnos</h2>
+
+                <!-- Filtros -->
+                <div class="historial-filters">
+                    <div class="filter-group">
+                        <label for="statusFilter">Estado:</label>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">Todos</option>
+                            <option value="completed">✅ Completados</option>
+                            <option value="cancelled">❌ Cancelados</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="periodFilter">Período:</label>
+                        <select id="periodFilter" class="filter-select">
+                            <option value="month">Último mes</option>
+                            <option value="3months">Últimos 3 meses</option>
+                            <option value="all">Todo el historial</option>
+                        </select>
+                    </div>
+
+                    <button id="applyFiltersBtn" class="btn-primary">Aplicar Filtros</button>
+                </div>
+
+                <!-- Estadísticas -->
+                <div id="historialStats" class="historial-stats">
+                    <!-- Se llenarán dinámicamente -->
+                </div>
+
+                <!-- Lista de turnos -->
+                <div id="historialList" class="historial-list">
+                    <div class="loading">Cargando historial...</div>
+                </div>
+            </section>
+        </div>
+        <!-- Fin TAB: Historial -->
+
+        <!-- TAB: Mi Perfil -->
+        <div id="perfilTab" class="tab-content" style="display: none;">
+            <section class="perfil-section">
+                <h2>👤 Mi Perfil</h2>
+                <div class="perfil-container">
+                    <div class="loading">Cargando perfil...</div>
+                </div>
+            </section>
+        </div>
+        <!-- Fin TAB: Mi Perfil -->
     </main>
 
     <footer class="footer">
@@ -95,6 +161,9 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Toastify.js -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     <!-- App Scripts -->
     <script src="js/firebase-config.js"></script>
