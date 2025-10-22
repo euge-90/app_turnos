@@ -166,7 +166,12 @@ class GestorTurnos {
                     usuarioEmail: user.email,
                     fecha: fechaTimestamp,
                     hora: hora,
-                    servicio: servicio,
+                    servicio: {
+                        id: servicio.id,
+                        nombre: servicio.nombre,
+                        duracion: servicio.duracion,
+                        precio: servicio.precio
+                    },
                     estado: 'confirmado',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
