@@ -222,6 +222,51 @@ const Utils = {
     toastWarning(message, duration = 3000) {
         this.showToast(message, 'warning', duration);
     }
+    ,
+    /**
+     * Sanitize a value recursively so it's safe to write to Firestore.
+     * - Converts Date -> firebase.firestore.Timestamp
+     * - Leaves existing Timestamps / FieldValues untouched
+     * - Converts objects with custom prototypes into plain objects
+     */
+    sanitizeForFirestore(value) {
+        // Handle null/primitive
+        if (value === null || value === undefined) return value;
+        const type = Object.prototype.toString.call(value);
+
+        // Preserve FieldValue instances (serverTimestamp, increment, etc.)
+        if (value && value._methodName && typeof value._methodName === 'string') {
+            return value;
+        }
+
+        // Firestore Timestamp (compat) has toDate method
+        if (value && typeof value.toDate === 'function' && typeof value.seconds === 'number') {
+            return value;
+        }
+
+        // Date -> Timestamp
+        if (value instanceof Date) {
+            return firebase.firestore.Timestamp.fromDate(value);
+        }
+
+        // Arrays: sanitize each item
+        if (Array.isArray(value)) {
+            return value.map(v => this.sanitizeForFirestore(v));
+        }
+
+        // Plain object or object with custom prototype: convert to plain and sanitize keys
+        if (type === '[object Object]' || typeof value === 'object') {
+            const plain = {};
+            // Copy own enumerable properties
+            for (const key of Object.keys(value)) {
+                plain[key] = this.sanitizeForFirestore(value[key]);
+            }
+            return plain;
+        }
+
+        // Other primitives (string, number, boolean)
+        return value;
+    }
 };
 
 // Exportar para uso global

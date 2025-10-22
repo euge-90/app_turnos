@@ -213,9 +213,16 @@ class GestorTurnos {
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
-                console.log('🧹 Objeto ultra-limpio:', datosLimpios);
+                console.log('🧹 Objeto ultra-limpio (antes de sanitizar):', datosLimpios);
 
-                transaction.set(turnoRef, datosLimpios);
+                // Asegurar que el objeto enviado a Firestore sea plano y use Timestamps/FieldValues
+                const datosParaFirestore = (typeof Utils !== 'undefined' && Utils.sanitizeForFirestore)
+                    ? Utils.sanitizeForFirestore(datosLimpios)
+                    : datosLimpios;
+
+                console.log('🧾 Datos enviados a Firestore:', datosParaFirestore);
+
+                transaction.set(turnoRef, datosParaFirestore);
 
                 // 4. Actualizar contador de turnos del usuario
                 const userRef = db.collection('usuarios').doc(user.uid);
