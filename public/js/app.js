@@ -123,6 +123,13 @@ class GestorTurnos {
         const user = auth.currentUser;
         if (!user) throw new Error('Debes iniciar sesión');
 
+        // Log de depuración - VERSIÓN 2024-10-22
+        console.log('🔍 Reservando turno - Versión actualizada', {
+            servicio: servicio,
+            servicioTipo: typeof servicio,
+            servicioKeys: Object.keys(servicio)
+        });
+
         const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fecha);
 
         // Verificar límite de turnos ANTES de la transacción (optimización)
