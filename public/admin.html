@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Peluquería</title>
+    <title>Panel de Administración - Turnify V2</title>
     <link rel="stylesheet" href="css/turnos-calendar.css">
+    <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
@@ -45,15 +46,71 @@
 
         <!-- Tabs de navegación -->
         <div class="admin-tabs">
-            <button class="admin-tab-btn active" data-tab="agenda">Agenda del Día</button>
-            <button class="admin-tab-btn" data-tab="semana">Vista Semanal</button>
-            <button class="admin-tab-btn" data-tab="buscar">Buscar</button>
-            <button class="admin-tab-btn" data-tab="servicios">Servicios</button>
-            <button class="admin-tab-btn" data-tab="config">Configuración</button>
+            <button class="admin-tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="admin-tab-btn" data-tab="agenda">📅 Agenda del Día</button>
+            <button class="admin-tab-btn" data-tab="semana">📆 Vista Semanal</button>
+            <button class="admin-tab-btn" data-tab="buscar">🔍 Buscar</button>
+            <button class="admin-tab-btn" data-tab="servicios">✂️ Servicios</button>
+            <button class="admin-tab-btn" data-tab="config">⚙️ Configuración</button>
         </div>
 
+        <!-- Dashboard V2 -->
+        <section id="dashboardTab" class="admin-tab-content active">
+            <h2>📊 Dashboard - Resumen Completo</h2>
+
+            <!-- Métricas principales -->
+            <div class="dashboard-metrics">
+                <div class="metric-card">
+                    <h3>Ingresos del Mes</h3>
+                    <p class="metric-value" id="ingresosMes">$0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Turnos Completados</h3>
+                    <p class="metric-value" id="turnosCompletadosMes">0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Turnos Cancelados</h3>
+                    <p class="metric-value" id="turnosCanceladosMes">0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Tasa de Cancelación</h3>
+                    <p class="metric-value" id="tasaCancelacion">0%</p>
+                </div>
+            </div>
+
+            <!-- Próximo turno -->
+            <div class="dashboard-section">
+                <h3>🔔 Próximo Turno</h3>
+                <div id="proximoTurnoContainer" class="proximo-turno-card"></div>
+            </div>
+
+            <!-- Gráfico de turnos por día -->
+            <div class="dashboard-section">
+                <h3>📈 Turnos por Día (Últimos 7 días)</h3>
+                <div id="graficoTurnos" class="grafico-simple"></div>
+            </div>
+
+            <!-- Top 3 Servicios -->
+            <div class="dashboard-section">
+                <h3>🏆 Top 3 Servicios del Mes</h3>
+                <div id="top3Servicios" class="top-servicios-list"></div>
+            </div>
+
+            <!-- Horarios populares -->
+            <div class="dashboard-section">
+                <h3>⏰ Horarios Más Populares</h3>
+                <div id="horariosPopulares" class="horarios-populares-list"></div>
+            </div>
+
+            <!-- Clientes frecuentes -->
+            <div class="dashboard-section">
+                <h3>👥 Clientes Frecuentes</h3>
+                <div id="clientesFrecuentes" class="clientes-frecuentes-list"></div>
+            </div>
+        </section>
+
         <!-- Agenda del Día -->
-        <section id="agendaTab" class="admin-tab-content active">
+        <section id="agendaTab" class="admin-tab-content">
             <div class="agenda-header">
                 <h2>Agenda - <span id="fechaAgenda"></span></h2>
                 <div class="agenda-controls">

@@ -110,6 +110,138 @@ const AdminManager = {
         });
     },
 
+    // Marcar turno como completado (V2 - Nueva funcionalidad)
+    async marcarComoCompletado(turnoId) {
+        await db.collection('turnos').doc(turnoId).update({
+            estado: 'completed',
+            completadoAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    },
+
+    // Obtener estadísticas avanzadas del mes (V2)
+    async obtenerEstadisticasAvanzadas() {
+        const today = new Date();
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        // Obtener todos los turnos del mes
+        const snapshot = await db.collection('turnos')
+            .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(startOfMonth))
+            .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(endOfMonth))
+            .get();
+
+        const turnos = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            fecha: doc.data().fecha.toDate()
+        }));
+
+        // Ingresos del mes (solo turnos completados)
+        const turnosCompletados = turnos.filter(t => t.estado === 'completed');
+        const ingresosMes = turnosCompletados.reduce((total, turno) => {
+            const servicio = Utils.getServicio(turno.servicio.id);
+            return total + (servicio ? servicio.precio : 0);
+        }, 0);
+
+        // Turnos cancelados
+        const turnosCancelados = turnos.filter(t => t.estado === 'cancelado').length;
+        const totalTurnos = turnos.length;
+        const tasaCancelacion = totalTurnos > 0 ? ((turnosCancelados / totalTurnos) * 100).toFixed(1) : 0;
+
+        // Top 3 servicios más solicitados
+        const serviciosCount = {};
+        turnos.forEach(turno => {
+            const servicioId = turno.servicio.id;
+            serviciosCount[servicioId] = (serviciosCount[servicioId] || 0) + 1;
+        });
+
+        const top3Servicios = Object.entries(serviciosCount)
+            .map(([id, count]) => ({
+                servicio: Utils.getServicio(id),
+                cantidad: count
+            }))
+            .sort((a, b) => b.cantidad - a.cantidad)
+            .slice(0, 3);
+
+        // Horarios más populares
+        const horariosCount = {};
+        turnos.forEach(turno => {
+            horariosCount[turno.hora] = (horariosCount[turno.hora] || 0) + 1;
+        });
+
+        const horariosPopulares = Object.entries(horariosCount)
+            .map(([hora, count]) => ({ hora, cantidad: count }))
+            .sort((a, b) => b.cantidad - a.cantidad)
+            .slice(0, 5);
+
+        // Clientes frecuentes (más de 3 turnos)
+        const clientesCount = {};
+        turnos.forEach(turno => {
+            const clienteId = turno.usuarioId;
+            if (!clientesCount[clienteId]) {
+                clientesCount[clienteId] = {
+                    nombre: turno.usuarioNombre,
+                    email: turno.usuarioEmail,
+                    cantidad: 0
+                };
+            }
+            clientesCount[clienteId].cantidad++;
+        });
+
+        const clientesFrecuentes = Object.values(clientesCount)
+            .filter(c => c.cantidad > 3)
+            .sort((a, b) => b.cantidad - a.cantidad);
+
+        // Próximo turno
+        const turnosFuturos = turnos
+            .filter(t => t.estado === 'confirmado' && t.fecha >= today)
+            .sort((a, b) => {
+                const fechaDiff = a.fecha - b.fecha;
+                if (fechaDiff !== 0) return fechaDiff;
+                return a.hora.localeCompare(b.hora);
+            });
+
+        const proximoTurno = turnosFuturos.length > 0 ? turnosFuturos[0] : null;
+
+        return {
+            ingresosMes,
+            turnosCompletados: turnosCompletados.length,
+            turnosCancelados,
+            tasaCancelacion,
+            top3Servicios,
+            horariosPopulares,
+            clientesFrecuentes,
+            proximoTurno
+        };
+    },
+
+    // Obtener turnos por día de la semana (para gráfico) - V2
+    async obtenerTurnosPorDia() {
+        const today = new Date();
+        const hace7Dias = new Date(today);
+        hace7Dias.setDate(hace7Dias.getDate() - 7);
+
+        const snapshot = await db.collection('turnos')
+            .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(hace7Dias))
+            .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(today))
+            .get();
+
+        const turnosPorDia = {
+            'Lun': 0, 'Mar': 0, 'Mié': 0, 'Jue': 0, 'Vie': 0, 'Sáb': 0, 'Dom': 0
+        };
+
+        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+        snapshot.docs.forEach(doc => {
+            const turno = doc.data();
+            const fecha = turno.fecha.toDate();
+            const diaNombre = diasSemana[fecha.getDay()];
+            turnosPorDia[diaNombre]++;
+        });
+
+        return turnosPorDia;
+    },
+
     // Bloquear fecha
     async bloquearFecha(fecha, motivo) {
         const fechaStr = Utils.formatearFechaCorta(fecha);
@@ -354,6 +486,120 @@ const AdminUI = {
         }
     },
 
+    // Renderizar Dashboard completo (V2 - Nueva funcionalidad)
+    async renderDashboard() {
+        try {
+            // Obtener estadísticas avanzadas
+            const stats = await AdminManager.obtenerEstadisticasAvanzadas();
+            const turnosPorDia = await AdminManager.obtenerTurnosPorDia();
+
+            // Ingresos del mes
+            document.getElementById('ingresosMes').textContent = '$' + stats.ingresosMes.toLocaleString('es-AR');
+            document.getElementById('turnosCompletadosMes').textContent = stats.turnosCompletados;
+            document.getElementById('turnosCanceladosMes').textContent = stats.turnosCancelados;
+            document.getElementById('tasaCancelacion').textContent = stats.tasaCancelacion + '%';
+
+            // Próximo turno
+            const proximoContainer = document.getElementById('proximoTurnoContainer');
+            if (stats.proximoTurno) {
+                const turno = stats.proximoTurno;
+                const servicio = Utils.getServicio(turno.servicio.id);
+                proximoContainer.innerHTML = `
+                    <div class="proximo-turno-info">
+                        <p><strong>Cliente:</strong> ${turno.usuarioNombre}</p>
+                        <p><strong>Fecha:</strong> ${Utils.formatearFecha(turno.fecha)}</p>
+                        <p><strong>Hora:</strong> ${turno.hora} hs</p>
+                        <p><strong>Servicio:</strong> ${servicio.nombre}</p>
+                        <p><strong>Email:</strong> ${turno.usuarioEmail}</p>
+                    </div>
+                `;
+            } else {
+                proximoContainer.innerHTML = '<p style="color: #757575;">No hay turnos próximos</p>';
+            }
+
+            // Gráfico simple de barras
+            const graficoContainer = document.getElementById('graficoTurnos');
+            graficoContainer.innerHTML = '';
+            const maxTurnos = Math.max(...Object.values(turnosPorDia));
+
+            Object.entries(turnosPorDia).forEach(([dia, cantidad]) => {
+                const barra = document.createElement('div');
+                barra.className = 'grafico-barra';
+                const altura = maxTurnos > 0 ? (cantidad / maxTurnos) * 100 : 0;
+
+                barra.innerHTML = `
+                    <div class="barra-container">
+                        <div class="barra-fill" style="height: ${altura}%">
+                            <span class="barra-valor">${cantidad}</span>
+                        </div>
+                    </div>
+                    <div class="barra-label">${dia}</div>
+                `;
+
+                graficoContainer.appendChild(barra);
+            });
+
+            // Top 3 Servicios
+            const top3Container = document.getElementById('top3Servicios');
+            if (stats.top3Servicios.length > 0) {
+                top3Container.innerHTML = '';
+                stats.top3Servicios.forEach((item, index) => {
+                    const medalla = ['🥇', '🥈', '🥉'][index];
+                    const div = document.createElement('div');
+                    div.className = 'top-servicio-item';
+                    div.innerHTML = `
+                        <span class="medalla">${medalla}</span>
+                        <span class="servicio-nombre">${item.servicio.nombre}</span>
+                        <span class="servicio-cantidad">${item.cantidad} turnos</span>
+                    `;
+                    top3Container.appendChild(div);
+                });
+            } else {
+                top3Container.innerHTML = '<p style="color: #757575;">No hay datos disponibles</p>';
+            }
+
+            // Horarios populares
+            const horariosContainer = document.getElementById('horariosPopulares');
+            if (stats.horariosPopulares.length > 0) {
+                horariosContainer.innerHTML = '';
+                stats.horariosPopulares.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'horario-item';
+                    div.innerHTML = `
+                        <span class="horario-hora">${item.hora} hs</span>
+                        <span class="horario-cantidad">${item.cantidad} turnos</span>
+                    `;
+                    horariosContainer.appendChild(div);
+                });
+            } else {
+                horariosContainer.innerHTML = '<p style="color: #757575;">No hay datos disponibles</p>';
+            }
+
+            // Clientes frecuentes
+            const clientesContainer = document.getElementById('clientesFrecuentes');
+            if (stats.clientesFrecuentes.length > 0) {
+                clientesContainer.innerHTML = '';
+                stats.clientesFrecuentes.forEach(cliente => {
+                    const div = document.createElement('div');
+                    div.className = 'cliente-item';
+                    div.innerHTML = `
+                        <div class="cliente-info">
+                            <strong>${cliente.nombre}</strong>
+                            <p style="color: #757575; font-size: 0.9rem;">${cliente.email}</p>
+                        </div>
+                        <span class="cliente-cantidad">${cliente.cantidad} turnos</span>
+                    `;
+                    clientesContainer.appendChild(div);
+                });
+            } else {
+                clientesContainer.innerHTML = '<p style="color: #757575;">No hay clientes frecuentes aún</p>';
+            }
+
+        } catch (error) {
+            console.error('Error al cargar dashboard:', error);
+        }
+    },
+
     // Renderizar agenda del día
     async renderAgenda() {
         const container = document.getElementById('agendaContainer');
@@ -384,7 +630,8 @@ const AdminUI = {
                         <p>Duración: ${servicio.duracion} min | Precio: $${servicio.precio.toLocaleString('es-AR')}</p>
                     </div>
                     <div class="turno-actions">
-                        <button class="btn-danger btn-small" onclick="eliminarTurnoAdmin('${turno.id}')">Eliminar</button>
+                        <button class="btn-success btn-small" onclick="marcarCompletadoUI('${turno.id}')">✅ Completado</button>
+                        <button class="btn-danger btn-small" onclick="eliminarTurnoAdmin('${turno.id}')">❌ Cancelar</button>
                     </div>
                 `;
 
@@ -596,16 +843,38 @@ const AdminUI = {
 // Eliminar turno (admin)
 async function eliminarTurnoAdmin(turnoId) {
     const result = await Utils.confirmar(
-        '¿Eliminar Turno?',
-        'Esta acción eliminará permanentemente el turno del cliente. El cliente no recibirá notificación.'
+        '¿Cancelar Turno?',
+        'Esta acción cancelará el turno del cliente. El cliente no recibirá notificación automática.'
     );
 
     if (result.isConfirmed) {
         try {
-            Utils.showLoading('Eliminando turno...');
+            Utils.showLoading('Cancelando turno...');
             await AdminManager.cancelarTurno(turnoId);
             Utils.closeLoading();
-            await Utils.showSuccess('Turno Eliminado', 'El turno ha sido eliminado correctamente');
+            await Utils.showSuccess('Turno Cancelado', 'El turno ha sido cancelado correctamente');
+            AdminUI.renderAgenda();
+            AdminUI.renderEstadisticas();
+        } catch (error) {
+            Utils.closeLoading();
+            Utils.showError('Error', error.message);
+        }
+    }
+}
+
+// Marcar turno como completado (V2 - Nueva funcionalidad)
+async function marcarCompletadoUI(turnoId) {
+    const result = await Utils.confirmar(
+        '¿Marcar como Completado?',
+        'Esta acción marcará el turno como completado y se contabilizará en los ingresos del mes.'
+    );
+
+    if (result.isConfirmed) {
+        try {
+            Utils.showLoading('Actualizando turno...');
+            await AdminManager.marcarComoCompletado(turnoId);
+            Utils.closeLoading();
+            await Utils.showSuccess('Turno Completado', 'El turno ha sido marcado como completado correctamente');
             AdminUI.renderAgenda();
             AdminUI.renderEstadisticas();
         } catch (error) {
@@ -715,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Inicializar UI
             AdminUI.renderEstadisticas();
-            AdminUI.renderAgenda();
+            AdminUI.renderDashboard(); // V2 - Cargar dashboard por defecto
             AdminUI.renderFechasBloqueadas();
             AdminUI.renderEstadisticasServicios();
 
@@ -746,7 +1015,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(tab + 'Tab').classList.add('active');
 
             // Cargar datos si es necesario
-            if (tab === 'semana') {
+            if (tab === 'dashboard') {
+                AdminUI.renderDashboard();
+            } else if (tab === 'agenda') {
+                AdminUI.renderAgenda();
+            } else if (tab === 'semana') {
                 currentWeekStart = new Date();
                 currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
                 AdminUI.renderSemana();

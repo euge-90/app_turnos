@@ -181,6 +181,9 @@ class GestorTurnos {
             canceladoAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // V2: Notificar lista de espera para este horario
+        await notificarListaEsperaCuandoCancelan(fechaTurno, turno.data().hora);
+
         // Limpiar cache
         this.cache.clear();
     }
@@ -1037,12 +1040,21 @@ async function cargarPerfil() {
                 <button id="btnCambiarPassword" class="btn-secondary">🔒 Cambiar Contraseña</button>
                 <button id="btnEliminarCuenta" class="btn-danger">🗑️ Eliminar Cuenta</button>
             </div>
+
+            <!-- V2: Lista de espera activa -->
+            <div class="perfil-lista-espera">
+                <h4>⏰ Mis Listas de Espera</h4>
+                <div id="listasEsperaContainer"></div>
+            </div>
         `;
 
         // Event listeners para las acciones
         document.getElementById('btnEditarPerfil').addEventListener('click', abrirModalEditarPerfil);
         document.getElementById('btnCambiarPassword').addEventListener('click', abrirModalCambiarPassword);
         document.getElementById('btnEliminarCuenta').addEventListener('click', eliminarCuenta);
+
+        // V2: Cargar listas de espera
+        await cargarListasEsperaPerfil();
 
     } catch (error) {
         console.error('Error al cargar perfil:', error);
@@ -1489,9 +1501,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             Utils.closeLoading();
 
-            // Si el horario ya no está disponible, recargar horarios y ocultar confirmación
+            // Si el horario ya no está disponible, ofrecer lista de espera (V2)
             if (error.message.includes('acaba de ser reservado')) {
-                await Utils.showError('Horario No Disponible', error.message);
+                // Mostrar modal de lista de espera
+                await mostrarModalListaEspera(
+                    gestorTurnos.fechaSeleccionada,
+                    gestorTurnos.horaSeleccionada,
+                    gestorTurnos.servicioSeleccionado
+                );
 
                 // Recargar horarios disponibles para la fecha seleccionada
                 gestorTurnos.horaSeleccionada = null;
@@ -1516,3 +1533,227 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.horario-btn').forEach(b => b.classList.remove('selected'));
     });
 });
+
+// ========================================
+// SISTEMA DE LISTA DE ESPERA (V2)
+// ========================================
+
+/**
+ * Agregar a lista de espera cuando un horario está ocupado
+ */
+async function agregarAListaEspera(fecha, hora, servicio) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Debes iniciar sesión');
+
+    const fechaStr = Utils.formatearFechaCorta(fecha);
+
+    try {
+        // Verificar que no esté ya en lista de espera para ese horario
+        const snapshot = await db.collection('listaEspera')
+            .where('userId', '==', user.uid)
+            .where('fecha', '==', fechaStr)
+            .where('hora', '==', hora)
+            .where('notificado', '==', false)
+            .get();
+
+        if (!snapshot.empty) {
+            throw new Error('Ya estás en la lista de espera para este horario');
+        }
+
+        // Agregar a lista de espera
+        await db.collection('listaEspera').add({
+            userId: user.uid,
+            userEmail: user.email,
+            userName: user.displayName || user.email,
+            fecha: fechaStr,
+            hora: hora,
+            servicio: servicio.nombre,
+            servicioId: servicio.id,
+            notificado: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Error al agregar a lista de espera:', error);
+        throw error;
+    }
+}
+
+/**
+ * Obtener listas de espera activas del usuario
+ */
+async function obtenerListasEspera() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const snapshot = await db.collection('listaEspera')
+            .where('userId', '==', user.uid)
+            .where('notificado', '==', false)
+            .get();
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error al obtener listas de espera:', error);
+        return [];
+    }
+}
+
+/**
+ * Cancelar lista de espera
+ */
+async function cancelarListaEspera(listaId) {
+    try {
+        await db.collection('listaEspera').doc(listaId).delete();
+    } catch (error) {
+        console.error('Error al cancelar lista de espera:', error);
+        throw error;
+    }
+}
+
+/**
+ * Notificar lista de espera cuando se cancela un turno
+ * Esta función se llama automáticamente cuando se cancela un turno
+ */
+async function notificarListaEsperaCuandoCancelan(fecha, hora) {
+    try {
+        const fechaStr = Utils.formatearFechaCorta(fecha);
+
+        // Buscar personas en lista de espera para ese horario
+        const snapshot = await db.collection('listaEspera')
+            .where('fecha', '==', fechaStr)
+            .where('hora', '==', hora)
+            .where('notificado', '==', false)
+            .orderBy('createdAt', 'asc')
+            .limit(1)
+            .get();
+
+        // Notificar al primero en la lista
+        if (!snapshot.empty) {
+            const lista = snapshot.docs[0];
+            await db.collection('listaEspera').doc(lista.id).update({
+                notificado: true,
+                notificadoAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+    } catch (error) {
+        console.error('Error al notificar lista de espera:', error);
+    }
+}
+
+/**
+ * Cargar y renderizar listas de espera en el perfil
+ */
+async function cargarListasEsperaPerfil() {
+    const container = document.getElementById('listasEsperaContainer');
+
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading">Cargando...</div>';
+
+    try {
+        const listas = await obtenerListasEspera();
+
+        if (listas.length === 0) {
+            container.innerHTML = '<p style="color: #757575;">No tenés listas de espera activas</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        listas.forEach(lista => {
+            const card = document.createElement('div');
+            card.className = 'lista-espera-card';
+            card.style.cssText = `
+                background: #fff3cd;
+                padding: 1rem;
+                border-radius: 8px;
+                border-left: 4px solid #ff9800;
+                margin-bottom: 0.75rem;
+            `;
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <p style="margin: 0; font-weight: 600; color: #212121;">${lista.servicio}</p>
+                        <p style="margin: 0.25rem 0; color: #757575; font-size: 0.9rem;">📅 ${lista.fecha} - 🕐 ${lista.hora} hs</p>
+                        <p style="margin: 0.25rem 0; color: #ff9800; font-size: 0.85rem;">⏰ En espera de disponibilidad</p>
+                    </div>
+                    <button
+                        class="btn-danger btn-small"
+                        onclick="cancelarListaEsperaUI('${lista.id}')"
+                        style="padding: 0.5rem 1rem; border: none; background: #f44336; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error('Error al cargar listas de espera:', error);
+        container.innerHTML = '<p style="color: #f44336;">Error al cargar listas de espera</p>';
+    }
+}
+
+/**
+ * UI para cancelar lista de espera
+ */
+async function cancelarListaEsperaUI(listaId) {
+    const result = await Utils.confirmar(
+        '¿Cancelar Lista de Espera?',
+        'Dejarás de recibir notificaciones para este horario.'
+    );
+
+    if (result.isConfirmed) {
+        try {
+            await cancelarListaEspera(listaId);
+            await Utils.showSuccess('Lista de Espera Cancelada', 'Ya no recibirás notificaciones para este horario');
+            cargarListasEsperaPerfil();
+        } catch (error) {
+            Utils.showError('Error', 'No se pudo cancelar la lista de espera');
+        }
+    }
+}
+
+/**
+ * Mostrar modal de lista de espera cuando un horario está ocupado
+ */
+async function mostrarModalListaEspera(fecha, hora, servicio) {
+    const result = await Swal.fire({
+        title: 'Horario Ocupado',
+        html: `
+            <p style="margin-bottom: 1rem;">Este horario ya está ocupado.</p>
+            <p style="font-weight: 600; margin-bottom: 1rem;">¿Querés anotarte en la lista de espera?</p>
+            <p style="font-size: 0.9rem; color: #757575;">
+                Si se cancela este turno, te notificaremos automáticamente por email.
+            </p>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, anotarme',
+        cancelButtonText: 'No, buscar otro horario',
+        confirmButtonColor: '#2196f3',
+        cancelButtonColor: '#757575'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            Utils.showLoading('Agregando a lista de espera...');
+            await agregarAListaEspera(fecha, hora, servicio);
+            Utils.closeLoading();
+            await Utils.showSuccess(
+                '¡Listo!',
+                'Te agregamos a la lista de espera. Te notificaremos por email si se libera este horario.'
+            );
+        } catch (error) {
+            Utils.closeLoading();
+            Utils.showError('Error', error.message);
+        }
+    }
+}

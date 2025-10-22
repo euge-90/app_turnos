@@ -183,6 +183,60 @@ service cloud.firestore {
     }
 
     // ========================================
+    // LISTA DE ESPERA (Collection: listaEspera) - V2
+    // ========================================
+    match /listaEspera/{listaId} {
+      // Lectura: El usuario puede leer sus propias listas de espera o el admin puede leer todas
+      allow read: if isAuthenticated() &&
+                     (resource.data.userId == request.auth.uid || isAdmin());
+
+      // Creación: El usuario puede agregar su propia lista de espera
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'userId',
+                         'userEmail',
+                         'userName',
+                         'fecha',
+                         'hora',
+                         'servicio',
+                         'servicioId',
+                         'notificado',
+                         'createdAt'
+                       ]) &&
+                       request.resource.data.notificado == false;
+
+      // Actualización: Solo el admin puede actualizar (para marcar como notificado)
+      // O el sistema mediante Cloud Functions
+      allow update: if isAdmin();
+
+      // Eliminación: El usuario puede eliminar sus propias listas de espera o el admin puede eliminar cualquiera
+      allow delete: if isAuthenticated() &&
+                       (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ========================================
+    // AUDITORÍA (Collection: auditoria) - V2 (Opcional)
+    // ========================================
+    match /auditoria/{logId} {
+      // Lectura: Solo el admin puede leer los logs
+      allow read: if isAdmin();
+
+      // Creación: Permitir la creación automática desde el cliente
+      // En producción, esto debería ser manejado solo por Cloud Functions
+      allow create: if isAuthenticated() &&
+                       request.resource.data.keys().hasAll([
+                         'accion',
+                         'userId',
+                         'userEmail',
+                         'timestamp'
+                       ]);
+
+      // Actualización y eliminación: Solo admins
+      allow update, delete: if isAdmin();
+    }
+
+    // ========================================
     // BLOQUEAR TODO LO DEMÁS
     // ========================================
     // Por defecto, todo lo demás está bloqueado

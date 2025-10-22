@@ -1,163 +1,218 @@
-# 🎨 Turnify V2 - Sistema de Reserva de Turnos para Peluquería
+# ✂️ Turnify V2 - Sistema de Gestión de Turnos para Peluquería
 
-Sistema web completo de gestión de turnos para peluquerías, desarrollado con **Vanilla JavaScript**, **Firebase** y **Bootstrap 5.3**.
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Firebase](https://img.shields.io/badge/Firebase-9.22.0-orange)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple)
+![License](https://img.shields.io/badge/license-Academic-green)
 
-**Versión**: 2.0
-**Estado**: ✅ Producción
+Sistema web completo para gestión de turnos de peluquería, desarrollado con Vanilla JavaScript y Firebase. Incluye panel de administración avanzado, notificaciones por email, lista de espera, y mucho más.
 
 ---
 
 ## 📋 Tabla de Contenidos
 
 - [Características](#-características)
-- [Tecnologías Utilizadas](#-tecnologías-utilizadas)
-- [Requisitos Previos](#-requisitos-previos)
-- [Instalación y Configuración](#-instalación-y-configuración)
-- [Configuración de Firebase](#-configuración-de-firebase)
+- [Equipo](#-equipo)
+- [Tecnologías](#-tecnologías)
+- [Instalación](#-instalación)
+- [Configuración](#-configuración)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Funcionalidades Principales](#-funcionalidades-principales)
-- [Despliegue](#-despliegue)
-- [Seguridad](#-seguridad)
-- [Solución de Problemas](#-solución-de-problemas)
-- [Créditos](#-créditos)
+- [Funcionalidades](#-funcionalidades)
+- [Deploy](#-deploy)
+- [Testing](#-testing)
+- [Changelog](#-changelog)
+- [Licencia](#-licencia)
 
 ---
 
 ## ✨ Características
 
-### **Para Usuarios**
-- ✅ Registro e inicio de sesión (email/contraseña o Google)
-- 📅 Reserva de turnos con calendario interactivo
-- ✏️ Modificación de turnos (hasta 2 veces por turno)
-- ❌ Cancelación de turnos (con 1 hora de anticipación)
-- 📊 Historial completo de turnos (completados y cancelados)
-- 👤 Gestión de perfil (editar datos, cambiar contraseña, eliminar cuenta)
-- 📱 Diseño 100% responsive (optimizado para iPhone SE y superiores)
-- 🔔 Notificaciones toast para feedback inmediato
+### Para Clientes 👥
 
-### **Seguridad y Validación**
-- 🔒 Reglas de seguridad Firestore (backend)
-- 🛡️ Validación en tiempo real con feedback visual
-- 🚫 Prevención de doble reserva con transacciones atómicas
-- 🔑 Re-autenticación obligatoria para acciones sensibles
-- ⏰ Validación de fechas (solo futuras, dentro de 4 meses)
+- ✅ Registro e inicio de sesión con Firebase Auth
+- ✅ Reserva de turnos con selección de servicio, fecha y hora
+- ✅ Modificación de turnos (hasta 2 veces por turno)
+- ✅ Cancelación de turnos (con 1 hora de anticipación)
+- ✅ Historial completo de turnos (completados y cancelados)
+- ✅ Perfil de usuario editable (nombre, teléfono)
+- ✅ Cambio de contraseña seguro con re-autenticación
+- ✅ **NUEVO:** Lista de espera para horarios ocupados
+- ✅ **NUEVO:** Notificaciones por email automáticas
+- ✅ **NUEVO:** Estadísticas personales de turnos
+- ✅ **NUEVO:** Vista de listas de espera activas en perfil
+
+### Para Administradores 👨‍💼
+
+- ✅ **Dashboard completo** con métricas en tiempo real
+- ✅ **Ingresos del mes** calculados automáticamente
+- ✅ **Gráfico de turnos** por día de la semana
+- ✅ **Top 3 servicios** más solicitados con medallas
+- ✅ **Horarios populares** del mes
+- ✅ **Clientes frecuentes** (más de 3 turnos)
+- ✅ **Próximo turno** con detalles del cliente
+- ✅ Agenda del día con vista detallada
+- ✅ Vista semanal completa
+- ✅ Búsqueda de turnos por cliente
+- ✅ **Marcar turnos como completados**
+- ✅ Cancelar turnos con notificación al cliente
+- ✅ Gestión completa de servicios (CRUD)
+- ✅ Bloqueo de fechas (vacaciones, feriados)
+- ✅ Exportación de turnos a CSV por mes
+- ✅ Estadísticas de servicios más solicitados
+
+### Sistema de Notificaciones 💌
+
+- ✅ Email de confirmación al reservar
+- ✅ Recordatorio 24 horas antes del turno
+- ✅ Email al cancelar turno
+- ✅ Notificación de lista de espera
+- ✅ Templates HTML profesionales y responsivos
+- ✅ Integración con SendGrid API
+
+### Sistema de Lista de Espera ⏰
+
+- ✅ Modal automático cuando un horario está ocupado
+- ✅ Notificación automática cuando se libera
+- ✅ Sistema FIFO (First In, First Out)
+- ✅ Gestión desde el perfil del usuario
+- ✅ Integración con sistema de cancelaciones
 
 ---
 
-## 🛠 Tecnologías Utilizadas
+## 👥 Equipo
 
-- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Backend**: Firebase (Authentication + Firestore)
-- **UI Framework**: Bootstrap 5.3
-- **Librerías**:
-  - SweetAlert2 (modales y alertas)
-  - Toastify.js (notificaciones no intrusivas)
-- **Hosting**: Firebase Hosting
-- **Versionamiento**: Git
+### Versión 2.0 (Octubre 2025)
+
+**Desarrolladora Principal:**
+- **Eugenia Ojeda** - Desarrollo Full Stack
+
+**Documentación y Testing:**
+- Teo Gandolfo
+- Mateo Santucci
+- Pedro Hauchar
+- Bruno Carlomagno
 
 ---
 
-## 📦 Requisitos Previos
+## 🛠 Tecnologías
 
-Antes de comenzar, asegúrate de tener instalado:
+### Frontend
+- **Vanilla JavaScript** (ES6+)
+- **HTML5** & **CSS3**
+- **Bootstrap 5.3** - Framework CSS
+- **SweetAlert2** - Modales elegantes
+- **Toastify.js** - Notificaciones toast
 
-- [Node.js](https://nodejs.org/) (v14 o superior)
-- [Firebase CLI](https://firebase.google.com/docs/cli)
-- Un navegador web moderno (Chrome, Firefox, Edge, Safari)
-- Una cuenta de [Firebase](https://firebase.google.com/)
+### Backend & Servicios
+- **Firebase Authentication** - Autenticación de usuarios
+- **Firebase Firestore** - Base de datos NoSQL en tiempo real
+- **Firebase Functions** - Funciones serverless para emails
+- **Firebase Hosting** - Hosting estático
+- **SendGrid API** - Envío de emails transaccionales
 
-### Instalar Firebase CLI
+### Herramientas de Desarrollo
+- **Git** & **GitHub** - Control de versiones
+- **Firebase CLI** - Deployment y gestión
+- **VS Code** - Editor de código
 
+---
+
+## 🚀 Instalación
+
+### Prerrequisitos
+
+- Node.js 18+ instalado
+- Firebase CLI instalado (`npm install -g firebase-tools`)
+- Cuenta de Firebase (plan Blaze para Functions)
+- Cuenta de SendGrid para emails
+
+### Pasos de Instalación
+
+1. **Clonar el repositorio:**
 ```bash
-npm install -g firebase-tools
-```
-
----
-
-## 🚀 Instalación y Configuración
-
-### 1. Clonar el repositorio
-
-```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/euge-90/app_turnos.git
 cd app_turnos
 ```
 
-### 2. Instalar dependencias (si las hubiera)
+2. **Configurar Firebase:**
+```bash
+firebase login
+firebase init
+```
 
-Este proyecto usa CDNs para las librerías, por lo que **no requiere** `npm install`. Sin embargo, necesitas Firebase CLI para el despliegue.
+3. **Instalar dependencias de Functions:**
+```bash
+cd functions
+npm install
+cd ..
+```
+
+4. **Configurar SendGrid API Key:**
+```bash
+firebase functions:config:set sendgrid.key="TU_API_KEY_AQUI"
+```
+
+5. **Configurar Firestore:**
+- Ir a Firebase Console
+- Crear base de datos Firestore
+- Aplicar las reglas de seguridad desde `firestore.rules`
+- Aplicar los índices desde `firestore.indexes.json`
 
 ---
 
-## 🔥 Configuración de Firebase
+## ⚙️ Configuración
 
-### Paso 1: Crear un proyecto en Firebase
+### 1. Firebase Config (`public/js/firebase-config.js`)
 
-1. Ve a [Firebase Console](https://console.firebase.google.com/)
-2. Haz clic en **"Agregar proyecto"**
-3. Nombra tu proyecto (ej: `turnos-peluqueria`)
-4. Habilita Google Analytics (opcional)
-5. Crea el proyecto
-
-### Paso 2: Habilitar Authentication
-
-1. En Firebase Console, ve a **Authentication** → **Sign-in method**
-2. Habilita los siguientes proveedores:
-   - **Email/Password**: Activar
-   - **Google**: Activar (configura nombre público y correo de soporte)
-
-### Paso 3: Crear base de datos Firestore
-
-1. Ve a **Firestore Database**
-2. Clic en **"Crear base de datos"**
-3. Selecciona **"Modo de producción"** (aplicaremos reglas personalizadas)
-4. Elige la ubicación más cercana (ej: `southamerica-east1`)
-
-### Paso 4: Obtener credenciales de Firebase
-
-1. En Firebase Console, ve a **Configuración del proyecto** (ícono ⚙️)
-2. En la sección **"Tus apps"**, haz clic en el ícono web `</>`
-3. Registra tu app con un nombre (ej: "Turnos Web")
-4. **Copia las credenciales** que se muestran
-
-### Paso 5: Configurar credenciales en el proyecto
-
-Abre el archivo `public/js/firebase-config.js` y reemplaza las credenciales:
+Actualizar con las credenciales de tu proyecto Firebase:
 
 ```javascript
 const firebaseConfig = {
     apiKey: "TU_API_KEY",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto-id",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
+    authDomain: "TU_PROJECT.firebaseapp.com",
+    projectId: "TU_PROJECT_ID",
+    storageBucket: "TU_BUCKET",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
 };
 ```
 
-### Paso 6: Configurar email del administrador
+### 2. Email del Administrador
 
-En el mismo archivo `firebase-config.js`, configura el email del administrador:
+En `firebase-config.js`, configurar el email del admin:
 
 ```javascript
 const CONFIG = {
     // ... otras configuraciones
-    adminEmail: 'admin@tudominio.com'  // ⬅️ Cambiar por tu email
+    adminEmail: 'admin@tudominio.com' // Email del administrador
 };
 ```
 
-### Paso 7: Desplegar reglas de seguridad de Firestore
+### 3. SendGrid Email Verificado
 
-Desde la raíz del proyecto:
+En `functions/index.js`, configurar el email verificado en SendGrid:
 
-```bash
-firebase login
-firebase use --add
-# Selecciona tu proyecto de Firebase
-firebase deploy --only firestore:rules
+```javascript
+const EMAIL_FROM = 'noreply@tudominio.com'; // Email verificado en SendGrid
+const APP_URL = 'https://tu-dominio.web.app'; // URL de tu aplicación
 ```
 
-Esto aplicará las reglas de seguridad definidas en `firestore.rules`.
+### 4. Horarios y Configuración
+
+En `firebase-config.js`, personalizar:
+
+```javascript
+const CONFIG = {
+    horaApertura: 9,              // Hora de apertura (9:00)
+    horaCierre: 18,               // Hora de cierre (18:00)
+    intervaloMinutos: 30,         // Intervalo entre turnos
+    diasLaborales: [2, 3, 4, 5, 6], // Martes a Sábado
+    maxTurnosPorUsuario: 3,       // Máximo de turnos activos
+    diasAnticipacion: 120,        // Días de anticipación (4 meses)
+    servicios: [/* tus servicios */],
+    adminEmail: 'admin@peluqueria.com'
+};
+```
 
 ---
 
@@ -166,315 +221,122 @@ Esto aplicará las reglas de seguridad definidas en `firestore.rules`.
 ```
 app_turnos/
 ├── public/
+│   ├── index.html              # Página principal (cliente)
+│   ├── login.html              # Login/Registro
+│   ├── admin.html              # Panel de administración ⭐ NUEVO
 │   ├── css/
-│   │   └── turnos-calendar.css      # Estilos principales
+│   │   ├── turnos-calendar.css # Estilos generales
+│   │   └── admin.css           # Estilos del panel admin ⭐ NUEVO
 │   ├── js/
-│   │   ├── firebase-config.js       # Configuración Firebase + Utils
-│   │   ├── auth.js                  # Sistema de autenticación
-│   │   ├── app.js                   # Lógica principal de turnos
-│   │   └── validation.js            # Validaciones en tiempo real
-│   ├── index.html                   # App principal (usuarios)
-│   ├── login.html                   # Página de login/registro
-│   └── admin.html                   # Panel admin (futuro)
-├── firestore.rules                  # Reglas de seguridad Firestore
-├── firebase.json                    # Configuración de Firebase Hosting
-├── .firebaserc                      # Proyecto Firebase activo
-└── README.md                        # Este archivo
+│   │   ├── firebase-config.js  # Configuración de Firebase
+│   │   ├── auth.js             # Autenticación
+│   │   ├── app.js              # Lógica principal cliente
+│   │   ├── admin.js            # Lógica panel admin ⭐ NUEVO
+│   │   └── validation.js       # Validaciones
+│   └── icons/                  # Iconos para PWA (futuro)
+├── functions/                  # Firebase Functions ⭐ NUEVO
+│   ├── index.js                # Funciones de email ⭐ NUEVO
+│   ├── package.json            # Dependencias Functions ⭐ NUEVO
+│   └── templates/              # Templates HTML emails (futuro)
+├── firestore.rules             # Reglas de seguridad Firestore ⭐ ACTUALIZADO
+├── firestore.indexes.json      # Índices de Firestore
+├── firebase.json               # Configuración Firebase
+├── README.md                   # Este archivo ⭐ ACTUALIZADO
+├── CHANGELOG.md                # Historial de cambios ⭐ NUEVO
+├── DOCUMENTACION_USO_IA.md     # Documentación de desarrollo con IA
+├── CASOS_DE_PRUEBA.md          # Casos de prueba
+└── REPORTE_DEFECTOS.md         # Reporte de bugs
 ```
 
 ---
 
-## 🎯 Funcionalidades Principales
+## 🚀 Deploy
 
-### 1️⃣ **Autenticación**
-
-**Registro de usuarios**:
-- Email/contraseña con validación en tiempo real
-- Registro con Google (OAuth)
-- Indicador de fortaleza de contraseña
-- Validación de teléfono con formato argentino
-
-**Inicio de sesión**:
-- Email/contraseña
-- Google Sign-In
-- Persistencia de sesión (LOCAL)
-
-### 2️⃣ **Reserva de Turnos**
-
-**Proceso de reserva**:
-1. Seleccionar servicio (Corte, Corte + Barba, Coloración, etc.)
-2. Elegir fecha en calendario (días laborales: Martes a Sábado)
-3. Seleccionar horario disponible (9:00 - 18:00 hs)
-4. Confirmar reserva
-
-**Validaciones**:
-- Solo días laborales (martes a sábado)
-- Rango de 4 meses desde hoy
-- Máximo 3 turnos activos por usuario
-- Prevención de doble reserva (transacciones atómicas)
-
-### 3️⃣ **Modificación de Turnos**
-
-- Hasta **2 modificaciones** por turno
-- Anticipación mínima: **2 horas**
-- Verificación de disponibilidad del nuevo horario
-
-### 4️⃣ **Cancelación de Turnos**
-
-- Anticipación mínima: **1 hora**
-- Confirmación obligatoria
-- Actualización inmediata del estado
-
-### 5️⃣ **Historial de Turnos**
-
-**Filtros disponibles**:
-- Por estado: Todos / Completados / Cancelados
-- Por período: Último mes / Últimos 3 meses / Todo el historial
-
-**Estadísticas**:
-- Total de turnos históricos
-- Turnos completados
-- Turnos cancelados
-
-### 6️⃣ **Perfil de Usuario**
-
-**Visualización**:
-- Avatar con iniciales
-- Nombre, email, teléfono
-- Fecha de registro
-- Estadísticas personales
-
-**Edición**:
-- Modificar nombre y teléfono
-- Cambiar contraseña (con re-autenticación)
-- Eliminar cuenta (doble confirmación + re-autenticación)
-
----
-
-## 🌐 Despliegue
-
-### Despliegue en Firebase Hosting
-
-1. **Inicializar Firebase Hosting** (solo la primera vez):
+### Deploy Completo
 
 ```bash
-firebase init hosting
-# Selecciona:
-# - Public directory: public
-# - Configure as single-page app: Yes
-# - Overwite index.html: No
-```
-
-2. **Desplegar**:
-
-```bash
+# Deploy de todo el proyecto
 firebase deploy
+
+# O deploy selectivo:
+firebase deploy --only hosting          # Solo frontend
+firebase deploy --only firestore:rules  # Solo reglas
+firebase deploy --only functions        # Solo functions
 ```
 
-3. **Acceder a tu app**:
+### Deploy Inicial
 
-Verás una URL como: `https://tu-proyecto.web.app`
+1. **Configurar proyecto:**
+```bash
+firebase use --add
+```
 
-### Despliegue solo de reglas Firestore
-
+2. **Deploy firestore rules:**
 ```bash
 firebase deploy --only firestore:rules
+firebase deploy --only firestore:indexes
 ```
 
-### Despliegue solo del hosting
+3. **Deploy functions:**
+```bash
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+```
 
+4. **Deploy hosting:**
 ```bash
 firebase deploy --only hosting
 ```
 
----
+### URLs de Acceso
 
-## 🔐 Seguridad
-
-### Reglas de Firestore (firestore.rules)
-
-Las reglas implementan validación a nivel de base de datos:
-
-**Colección `usuarios`**:
-- Solo el propietario puede leer/escribir sus datos
-- El email no se puede modificar
-
-**Colección `turnos`**:
-- Solo turnos futuros
-- Solo el propietario puede modificar/cancelar
-- Máximo 3 turnos activos por usuario
-- Modificaciones con anticipación mínima de 2 horas
-- Cancelaciones con anticipación mínima de 1 hora
-
-**Colección `fechasBloqueadas`**:
-- Solo lectura para usuarios
-- Solo admin puede escribir
-
-### Validación Frontend
-
-- **validation.js**: Módulo centralizado de validaciones
-- Feedback visual en tiempo real (bordes verdes/rojos)
-- Validación de email, teléfono, contraseñas
-- Indicador de fortaleza de contraseña
+- **App Cliente:** `https://TU-PROJECT.web.app`
+- **Panel Admin:** `https://TU-PROJECT.web.app/admin.html`
+- **Firebase Console:** `https://console.firebase.google.com/project/TU-PROJECT`
 
 ---
 
-## 🐛 Solución de Problemas
+## 📚 Documentación Adicional
 
-### Error: "Permission denied" al leer/escribir en Firestore
-
-**Solución**: Despliega las reglas de seguridad:
-```bash
-firebase deploy --only firestore:rules
-```
-
-### No se muestran los turnos
-
-**Causas posibles**:
-1. Usuario no autenticado (verifica que `auth.currentUser` no sea null)
-2. Reglas de Firestore bloqueando acceso
-3. Datos de prueba no creados
-
-**Solución**:
-- Abre la consola del navegador (F12) y revisa errores
-- Verifica en Firebase Console → Firestore que los datos existan
-
-### Doble reserva del mismo horario
-
-**Solución**: Este bug fue corregido en V2 usando transacciones atómicas. Asegúrate de usar la versión más reciente de `app.js`.
-
-### Calendario no muestra 4 meses
-
-**Solución**: Verifica en `firebase-config.js` que:
-```javascript
-diasAnticipacion: 120  // ✅ 4 meses (no 90)
-```
-
-### Botones demasiado pequeños en iPhone SE
-
-**Solución**: Los estilos responsive están implementados en `turnos-calendar.css` (BUG-008 FIX). Verifica que el CSS esté actualizado.
+- **CHANGELOG.md:** Historial de cambios completo ⭐ NUEVO
+- **DOCUMENTACION_USO_IA.md:** Documentación de desarrollo con IA
+- **CASOS_DE_PRUEBA.md:** Casos de prueba detallados
+- **REPORTE_DEFECTOS.md:** Bugs encontrados y resueltos
 
 ---
 
-## 🎨 Personalización
+## 🤝 Contribuciones
 
-### Cambiar horarios de atención
-
-Edita `firebase-config.js`:
-
-```javascript
-const CONFIG = {
-    horaApertura: 9,      // Hora inicio (9:00 AM)
-    horaCierre: 18,       // Hora fin (6:00 PM)
-    intervaloMinutos: 30, // Duración de cada slot
-    // ...
-};
-```
-
-### Cambiar días laborales
-
-```javascript
-const CONFIG = {
-    // 0=Domingo, 1=Lunes, 2=Martes, etc.
-    diasLaborales: [2, 3, 4, 5, 6], // Martes a Sábado
-    // ...
-};
-```
-
-### Agregar o modificar servicios
-
-```javascript
-const CONFIG = {
-    servicios: [
-        { id: 'corte', nombre: 'Corte de Cabello', duracion: 30, precio: 2000 },
-        { id: 'nuevo', nombre: 'Nuevo Servicio', duracion: 60, precio: 3000 },
-        // ...
-    ]
-};
-```
-
-### Cambiar colores
-
-Edita las variables CSS en `turnos-calendar.css`:
-
-```css
-:root {
-    --primary-color: #2196f3;     /* Azul principal */
-    --primary-dark: #1976d2;      /* Azul oscuro */
-    --danger-color: #f44336;      /* Rojo */
-    --success-color: #4caf50;     /* Verde */
-    /* ... */
-}
-```
-
----
-
-## 📊 Registro de Cambios (V2)
-
-### 🆕 Nuevas Funcionalidades
-
-- ✅ **REQ-V2-01**: Modificación de turnos (hasta 2 veces)
-- ✅ **REQ-V2-02**: Historial de turnos con filtros
-- ✅ **REQ-V2-03**: Validaciones mejoradas con feedback visual
-- ✅ **REQ-V2-04**: Soporte para autenticación con Google
-- ✅ **REQ-V2-05**: Gestión completa de perfil de usuario
-- ✅ **REQ-V2-08**: Toast notifications para mejor UX
-
-### 🐛 Bugs Corregidos
-
-- ✅ **BUG-001**: Doble reserva del mismo horario (transacciones atómicas)
-- ✅ **BUG-003**: Reserva de fechas pasadas (validación backend)
-- ✅ **BUG-005**: Navegación de calendario más allá de 4 meses
-- ✅ **BUG-006**: Cancelación sin mínimo de anticipación
-- ✅ **BUG-008**: Elementos táctiles pequeños en iPhone SE
-
----
-
-## 📝 Notas de Desarrollo
-
-### Convenciones de Código
-
-- **Nombres de variables**: camelCase
-- **Nombres de funciones**: camelCase descriptivo
-- **Comentarios**: En español, explicando el "por qué", no el "qué"
-- **Async/Await**: Preferir sobre `.then()/.catch()`
-
-### Testing Recomendado
-
-Antes de producción, probar:
-
-1. ✅ Registro de nuevo usuario
-2. ✅ Login con email/password y con Google
-3. ✅ Reservar un turno
-4. ✅ Modificar turno (2 veces)
-5. ✅ Cancelar turno
-6. ✅ Ver historial con filtros
-7. ✅ Editar perfil
-8. ✅ Cambiar contraseña
-9. ✅ Eliminar cuenta
-10. ✅ Intentar doble reserva (debe fallar)
-11. ✅ Responsive en móvil (iPhone SE mínimo)
+Este es un proyecto académico/educativo. Para sugerencias o mejoras, contactar al equipo de desarrollo.
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto es de código abierto. Puedes usarlo y modificarlo libremente para tu negocio.
+Este proyecto es de uso académico/educativo.
 
 ---
 
-## 👨‍💻 Créditos
+## 📧 Contacto
 
-**Versión**: 2.0
-**Fecha**: Octubre 2025
+**Equipo de Desarrollo V2**
+- Eugenia Ojeda - Desarrolladora Principal
+- Teo Gandolfo, Mateo Santucci, Pedro Hauchar, Bruno Carlomagno - Documentación y Testing
 
-### Tecnologías y Librerías
-
-- [Firebase](https://firebase.google.com/) - Backend as a Service
-- [Bootstrap](https://getbootstrap.com/) - Framework CSS
-- [SweetAlert2](https://sweetalert2.github.io/) - Modales y alertas
-- [Toastify.js](https://apvarun.github.io/toastify-js/) - Notificaciones toast
+**Repositorio:** https://github.com/euge-90/app_turnos
 
 ---
 
-**¡Gracias por usar Turnify V2! 🎉**
+## 🎉 Agradecimientos
+
+Gracias al equipo completo por el esfuerzo y dedicación en el desarrollo de Turnify V2.
+
+---
+
+**Desarrollado con ❤️ por el equipo de Turnify**
+
+**Versión:** 2.0.0
+**Fecha:** Octubre 2025
+**Estado:** ✅ Producción
