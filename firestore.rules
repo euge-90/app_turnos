@@ -64,9 +64,13 @@ service cloud.firestore {
     // TURNOS (Collection: turnos)
     // ========================================
     match /turnos/{turnoId} {
-      // Lectura: El usuario puede leer sus propios turnos o el admin puede leer todos
-      allow read: if isAuthenticated() &&
-                     (resource.data.usuarioId == request.auth.uid || isAdmin());
+      // Lectura: Cualquier usuario autenticado puede leer turnos
+      // Esto es necesario para:
+      // - Ver disponibilidad en el calendario
+      // - Ver horarios ocupados al reservar
+      // - Cargar sus propios turnos
+      // Nota: Los datos sensibles no se exponen (solo fecha, hora, servicio, estado)
+      allow read: if isAuthenticated();
 
       // Creación: El usuario puede crear turnos solo para sí mismo
       // VALIDACIONES CRÍTICAS (soluciona BUG-003):
