@@ -1197,4 +1197,33 @@ document.addEventListener('DOMContentLoaded', () => {
             Utils.showError('Error', error.message);
         }
     });
+
+    // ========================================
+    // MODO OSCURO (V2)
+    // ========================================
+    const darkMode = localStorage.getItem("darkMode") === "true";
+    if (darkMode) {
+        document.body.classList.add("dark-mode");
+        updateDarkModeIconAdmin();
+    }
+
+    // Toggle de modo oscuro
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("darkMode", isDark);
+            updateDarkModeIconAdmin();
+        });
+    }
 });
+
+function updateDarkModeIconAdmin() {
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        const isDark = document.body.classList.contains("dark-mode");
+        darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+        darkModeToggle.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+    }
+}

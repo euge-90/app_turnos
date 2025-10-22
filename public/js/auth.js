@@ -332,3 +332,35 @@ if (document.getElementById('logoutBtn')) {
         }
     });
 }
+
+// ========================================
+// MODO OSCURO (V2)
+// ========================================
+function updateDarkModeIcon() {
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        const isDark = document.body.classList.contains("dark-mode");
+        darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+        darkModeToggle.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+    }
+}
+
+// Inicializar modo oscuro
+document.addEventListener("DOMContentLoaded", () => {
+    const darkMode = localStorage.getItem("darkMode") === "true";
+    if (darkMode) {
+        document.body.classList.add("dark-mode");
+        updateDarkModeIcon();
+    }
+
+    // Toggle de modo oscuro
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("darkMode", isDark);
+            updateDarkModeIcon();
+        });
+    }
+});

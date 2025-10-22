@@ -1583,7 +1583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Navegación del calendario
-    document.getElementById('prevMonthBtn').addEventListener('click', () => {
+    document.getElementById('prevMonthBtn').addEventListener('click', async () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -1601,7 +1601,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('nextMonthBtn').addEventListener('click', () => {
+    document.getElementById('nextMonthBtn').addEventListener('click', async () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
