@@ -965,6 +965,11 @@ body.dark-mode .btn-dark-mode-login {
     border-radius: var(--border-radius);
 }
 
+/* Hidden class */
+.hidden {
+    display: none !important;
+}
+
 /* Loading */
 .loading {
     text-align: center;

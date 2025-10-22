@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="339IIj6DcVrOvAc_MOlHX5oW8DBMOIhJ6GXRBxiHFpk" />
     <title>Reserva de Turnos - Peluquería</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/images/logo completo.jpeg">
     <meta name="theme-color" content="#ff6b6b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -75,13 +76,13 @@
             </div>
 
             <!-- Horarios Disponibles -->
-            <div id="horariosSection" class="horarios-section" style="display: none;">
+            <div id="horariosSection" class="horarios-section hidden">
                 <h3>Horarios Disponibles - <span id="fechaSeleccionada"></span></h3>
                 <div id="horariosContainer" class="horarios-grid"></div>
             </div>
 
             <!-- Confirmación -->
-            <div id="confirmacionSection" class="confirmacion-section" style="display: none;">
+            <div id="confirmacionSection" class="confirmacion-section hidden">
                 <h3>Confirmar Reserva</h3>
                 <div class="confirmacion-detalle">
                     <p><strong>Servicio:</strong> <span id="confirmServicio"></span></p>
@@ -100,7 +101,7 @@
         <!-- Fin TAB: Mis Turnos -->
 
         <!-- TAB: Historial -->
-        <div id="historialTab" class="tab-content" style="display: none;">
+        <div id="historialTab" class="tab-content">
             <section class="historial-section">
                 <h2>📜 Historial de Turnos</h2>
 
@@ -141,7 +142,7 @@
         <!-- Fin TAB: Historial -->
 
         <!-- TAB: Mi Perfil -->
-        <div id="perfilTab" class="tab-content" style="display: none;">
+        <div id="perfilTab" class="tab-content">
             <section class="perfil-section">
                 <h2>👤 Mi Perfil</h2>
                 <div class="perfil-container">
