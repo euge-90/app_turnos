@@ -25,7 +25,7 @@ function parseFechaFirestore(fecha) {
 // AUTO-MIGRACIÓN DE TURNOS (Ejecutar una vez por usuario)
 // ========================================
 /**
- * Migra automáticamente los turnos del usuario de Timestamp a String
+ * Migra automáticamente los turnos del usuario de String a Timestamp
  * Se ejecuta solo una vez por usuario (usa localStorage)
  */
 async function migrarMisTurnosAutomatico() {
@@ -33,13 +33,13 @@ async function migrarMisTurnosAutomatico() {
     if (!user) return;
 
     // Verificar si ya migró
-    const migracionKey = `migracion_completada_${user.uid}`;
+    const migracionKey = `migracion_timestamp_completada_${user.uid}`;
     if (localStorage.getItem(migracionKey)) {
         console.log('✅ Auto-migración: Ya completada anteriormente para este usuario');
         return;
     }
 
-    console.log('🔧 Iniciando auto-migración de turnos del usuario...');
+    console.log('🔧 Iniciando auto-migración de turnos del usuario (String → Timestamp)...');
 
     try {
         const snapshot = await db.collection('turnos')
@@ -58,34 +58,37 @@ async function migrarMisTurnosAutomatico() {
         for (const doc of snapshot.docs) {
             const data = doc.data();
 
-            // Verificar si fecha NO es string
-            if (data.fecha && typeof data.fecha !== 'string') {
-                let fechaObj = data.fecha;
-
-                // Si es Timestamp de Firebase, convertir a Date
-                if (fechaObj.toDate && typeof fechaObj.toDate === 'function') {
-                    fechaObj = fechaObj.toDate();
+            // Verificar si fecha ES un string (formato YYYY-MM-DD)
+            if (typeof data.fecha === 'string') {
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(data.fecha)) {
+                    console.warn(`  ⚠️  Turno ${doc.id}: formato de fecha inválido (${data.fecha}), se omite`);
+                    continue;
                 }
 
-                // Convertir a string YYYY-MM-DD
-                if (fechaObj instanceof Date && !isNaN(fechaObj.getTime())) {
-                    const fechaString = fechaObj.toISOString().split('T')[0];
-
-                    await doc.ref.update({
-                        fecha: fechaString
-                    });
-
-                    migrados++;
-                    console.log(`  ✅ Turno ${doc.id}: ${fechaObj} → ${fechaString}`);
+                const fechaDate = new Date(data.fecha + 'T00:00:00');
+                if (isNaN(fechaDate.getTime())) {
+                    console.warn(`  ⚠️  Turno ${doc.id}: no se pudo convertir la fecha (${data.fecha})`);
+                    continue;
                 }
-            } else if (typeof data.fecha === 'string') {
+
+                const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fechaDate);
+
+                await doc.ref.update({
+                    fecha: fechaTimestamp
+                });
+
+                migrados++;
+                console.log(`  ✅ Turno ${doc.id}: ${data.fecha} → Timestamp`);
+
+            } else if (data.fecha && data.fecha.toDate && typeof data.fecha.toDate === 'function') {
+                // Ya es Timestamp
                 yaCorrectos++;
             }
         }
 
         console.log('');
         console.log('========================================');
-        console.log('✅ AUTO-MIGRACIÓN COMPLETADA');
+        console.log('✅ AUTO-MIGRACIÓN COMPLETADA (String → Timestamp)');
         console.log('========================================');
         console.log(`   Total revisados: ${snapshot.size}`);
         console.log(`   Turnos migrados: ${migrados}`);
