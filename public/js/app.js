@@ -282,71 +282,51 @@ class GestorTurnos {
             throw new Error(`Máximo ${CONFIG.maxTurnosPorUsuario} turnos activos permitidos`);
         }
 
-        let turnoId;
+        // Verificar disponibilidad FUERA de la transacción (fix: serialización de Timestamp)
+        console.log('🔎 Consultando disponibilidad con:', {
+            tipoFecha: fechaTimestamp?.constructor?.name,
+            fechaTimestamp,
+            horaNormalizada
+        });
+
+        const disponibilidadSnapshot = await db.collection('turnos')
+            .where('fecha', '==', fechaTimestamp)
+            .where('hora', '==', horaNormalizada)
+            .where('estado', '==', 'confirmado')
+            .get();
+
+        if (!disponibilidadSnapshot.empty) {
+            throw new Error('Este horario acaba de ser reservado por otro usuario. Por favor selecciona otro horario.');
+        }
+
+        // Crear el turno
+        const datosTurno = {
+            usuarioId: user.uid,
+            usuarioNombre: user.displayName || 'Usuario',
+            usuarioEmail: user.email,
+            fecha: fechaTimestamp,
+            hora: horaNormalizada,
+            servicio: servicioLimpio,
+            estado: 'confirmado',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            modificacionesCount: 0
+        };
+
+        const datosParaFirestore = (typeof Utils !== 'undefined' && Utils.sanitizeForFirestore)
+            ? Utils.sanitizeForFirestore(datosTurno)
+            : datosTurno;
+
+        console.log('📋 Datos del turno a guardar (sanitizados):', datosParaFirestore);
+
         try {
-            turnoId = await db.runTransaction(async (transaction) => {
-                console.log('🔎 Consultando disponibilidad con:', {
-                    tipoFecha: fechaTimestamp?.constructor?.name,
-                    fechaTimestamp,
-                    horaNormalizada
-                });
-
-                let disponibilidadSnapshot;
-                try {
-                    disponibilidadSnapshot = await transaction.get(
-                        db.collection('turnos')
-                            .where('fecha', '==', fechaTimestamp)
-                            .where('hora', '==', horaNormalizada)
-                            .where('estado', '==', 'confirmado')
-                    );
-                } catch (consultaError) {
-                    console.error('🔥 Error al consultar disponibilidad:', consultaError, {
-                        fechaTimestamp,
-                        tipoFecha: fechaTimestamp?.constructor?.name,
-                        horaNormalizada
-                    });
-                    throw consultaError;
-                }
-
-                if (!disponibilidadSnapshot.empty) {
-                    throw new Error('HORARIO_NO_DISPONIBLE');
-                }
-
-                const turnoRef = db.collection('turnos').doc();
-
-                const datosTurno = {
-                    id: turnoRef.id,
-                    usuarioId: user.uid,
-                    usuarioNombre: user.displayName || 'Usuario',
-                    usuarioEmail: user.email,
-                    fecha: fechaTimestamp,
-                    hora: horaNormalizada,
-                    servicio: servicioLimpio,
-                    estado: 'confirmado',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    modificacionesCount: 0
-                };
-
-                const datosParaFirestore = (typeof Utils !== 'undefined' && Utils.sanitizeForFirestore)
-                    ? Utils.sanitizeForFirestore(datosTurno)
-                    : datosTurno;
-
-                console.log('� Datos del turno a guardar (sanitizados):', datosParaFirestore);
-
-                transaction.set(turnoRef, datosParaFirestore);
-
-                return turnoRef.id;
-            });
+            const turnoRef = await db.collection('turnos').add(datosParaFirestore);
+            console.log('✅ Turno creado exitosamente con ID:', turnoRef.id);
 
             this.cache.clear();
-            return turnoId;
+            return turnoRef.id;
 
         } catch (error) {
-            if (error.message === 'HORARIO_NO_DISPONIBLE') {
-                throw new Error('Este horario acaba de ser reservado por otro usuario. Por favor selecciona otro horario.');
-            }
-
-            console.error('🔥 Error en reservarTurno:', error);
+            console.error('🔥 Error al guardar turno:', error);
             throw error;
         }
     }
