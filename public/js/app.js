@@ -21,6 +21,90 @@ function parseFechaFirestore(fecha) {
     return new Date(fecha);
 }
 
+// ========================================
+// AUTO-MIGRACIÓN DE TURNOS (Ejecutar una vez por usuario)
+// ========================================
+/**
+ * Migra automáticamente los turnos del usuario de Timestamp a String
+ * Se ejecuta solo una vez por usuario (usa localStorage)
+ */
+async function migrarMisTurnosAutomatico() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Verificar si ya migró
+    const migracionKey = `migracion_completada_${user.uid}`;
+    if (localStorage.getItem(migracionKey)) {
+        console.log('✅ Auto-migración: Ya completada anteriormente para este usuario');
+        return;
+    }
+
+    console.log('🔧 Iniciando auto-migración de turnos del usuario...');
+
+    try {
+        const snapshot = await db.collection('turnos')
+            .where('usuarioId', '==', user.uid)
+            .get();
+
+        if (snapshot.empty) {
+            console.log('ℹ️  No hay turnos para migrar');
+            localStorage.setItem(migracionKey, 'true');
+            return;
+        }
+
+        let migrados = 0;
+        let yaCorrectos = 0;
+
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+
+            // Verificar si fecha NO es string
+            if (data.fecha && typeof data.fecha !== 'string') {
+                let fechaObj = data.fecha;
+
+                // Si es Timestamp de Firebase, convertir a Date
+                if (fechaObj.toDate && typeof fechaObj.toDate === 'function') {
+                    fechaObj = fechaObj.toDate();
+                }
+
+                // Convertir a string YYYY-MM-DD
+                if (fechaObj instanceof Date && !isNaN(fechaObj.getTime())) {
+                    const fechaString = fechaObj.toISOString().split('T')[0];
+
+                    await doc.ref.update({
+                        fecha: fechaString
+                    });
+
+                    migrados++;
+                    console.log(`  ✅ Turno ${doc.id}: ${fechaObj} → ${fechaString}`);
+                }
+            } else if (typeof data.fecha === 'string') {
+                yaCorrectos++;
+            }
+        }
+
+        console.log('');
+        console.log('========================================');
+        console.log('✅ AUTO-MIGRACIÓN COMPLETADA');
+        console.log('========================================');
+        console.log(`   Total revisados: ${snapshot.size}`);
+        console.log(`   Turnos migrados: ${migrados}`);
+        console.log(`   Ya correctos: ${yaCorrectos}`);
+        console.log('========================================');
+
+        if (migrados > 0) {
+            Utils.toastSuccess(`✅ Datos actualizados: ${migrados} turno${migrados > 1 ? 's' : ''} migrado${migrados > 1 ? 's' : ''}`, 3000);
+        }
+
+        // Marcar como completado
+        localStorage.setItem(migracionKey, 'true');
+
+    } catch (error) {
+        console.error('❌ Error en auto-migración:', error);
+        // No marcar como completado si hubo error, para que intente de nuevo
+    }
+}
+
 // Gestor de Turnos
 class GestorTurnos {
     constructor() {
@@ -146,32 +230,61 @@ class GestorTurnos {
         const user = auth.currentUser;
         if (!user) throw new Error('Debes iniciar sesión');
 
-        // ✅ CONVERTIR Date a STRING inmediatamente - VERSIÓN ROBUSTA
-        let fechaString;
+        // 🔥 FORZAR CONVERSIÓN INMEDIATA - SOBRESCRIBIR PARÁMETROS
+        console.log('🔍 PARÁMETROS ORIGINALES:', {
+            fecha: fecha,
+            tipoFecha: typeof fecha,
+            esFechaDate: fecha instanceof Date,
+            hora: hora,
+            tipoHora: typeof hora
+        });
+
+        // FORZAR conversión de fecha a string SOBRESCRIBIENDO el parámetro
         if (fecha instanceof Date) {
-            fechaString = fecha.toISOString().split('T')[0]; // "2025-10-31"
+            fecha = fecha.toISOString().split('T')[0];
+        } else if (typeof fecha === 'object' && fecha !== null && fecha.toDate) {
+            fecha = fecha.toDate().toISOString().split('T')[0];
         } else if (typeof fecha === 'string') {
-            fechaString = fecha.includes('T') ? fecha.split('T')[0] : fecha;
-        } else if (fecha && typeof fecha === 'object' && fecha.toDate) {
-            // Firestore Timestamp
-            fechaString = fecha.toDate().toISOString().split('T')[0];
+            fecha = fecha.includes('T') ? fecha.split('T')[0] : fecha;
         } else {
-            fechaString = new Date(fecha).toISOString().split('T')[0];
+            fecha = String(fecha).split('T')[0];
         }
 
-        // ✅ Asegurar que hora sea string
-        const horaString = String(hora);
+        // FORZAR conversión de hora a string SOBRESCRIBIENDO el parámetro
+        hora = String(hora);
 
-        console.log('✅ ANTES DE GUARDAR - Datos convertidos a tipos primitivos:', {
-            fechaString: fechaString,
-            tipoFecha: typeof fechaString,
-            horaString: horaString,
-            tipoHora: typeof horaString,
-            verificacion: fechaString.match(/^\d{4}-\d{2}-\d{2}$/) ? 'FORMATO CORRECTO' : 'FORMATO INCORRECTO'
+        // 🛡️ CONVERSIÓN DEFENSIVA DEL SERVICIO - Eliminar métodos y prototipos
+        console.log('🔍 SERVICIO ORIGINAL:', servicio, 'tipo:', typeof servicio);
+        console.log('   Keys del servicio original:', servicio ? Object.keys(servicio) : 'null');
+
+        // Crear objeto servicio limpio con SOLO los campos necesarios
+        const servicioLimpio = {
+            id: String(servicio?.id || ''),
+            nombre: String(servicio?.nombre || ''),
+            duracion: Number(servicio?.duracion || 0),
+            precio: Number(servicio?.precio || 0)
+        };
+
+        // Reemplazar el servicio original con el limpio
+        servicio = servicioLimpio;
+
+        console.log('✅ SERVICIO CONVERTIDO:', servicio);
+        console.log('   Keys del servicio limpio:', Object.keys(servicio));
+
+        console.log('');
+        console.log('✅ TODOS LOS PARÁMETROS NORMALIZADOS:', {
+            fecha: fecha,
+            tipoFecha: typeof fecha,
+            esFechaDate: fecha instanceof Date,
+            hora: hora,
+            tipoHora: typeof hora,
+            servicio: servicio,
+            tipoServicio: typeof servicio,
+            verificacionFormato: fecha.match(/^\d{4}-\d{2}-\d{2}$/) ? '✅ CORRECTO' : '❌ INCORRECTO'
         });
 
         // Validar que la fecha no sea pasada
-        const fechaTurno = new Date(fechaString + 'T00:00:00');
+        const fechaTurno = new Date(fecha + 'T00:00:00');
         const ahora = new Date();
         ahora.setHours(0, 0, 0, 0);
 
@@ -198,8 +311,8 @@ class GestorTurnos {
                 // 1. Verificar disponibilidad DENTRO de la transacción
                 const querySnapshot = await transaction.get(
                     db.collection('turnos')
-                        .where('fecha', '==', fechaString)
-                        .where('hora', '==', horaString)
+                        .where('fecha', '==', fecha)
+                        .where('hora', '==', hora)
                         .where('estado', '==', 'confirmado')
                 );
 
@@ -211,31 +324,95 @@ class GestorTurnos {
                 // 3. Crear el turno de forma atómica
                 const turnoRef = db.collection('turnos').doc();
 
-                // Construir objeto con SOLO tipos primitivos
-                const datosTurno = {
+                // 🔥 SOLUCIÓN RADICAL - Serialización forzada con JSON
+                console.log('');
+                console.log('🔥 APLICANDO SERIALIZACIÓN FORZADA...');
+
+                // Crear objeto temporal con todos los datos
+                const tempData = {
                     id: turnoRef.id,
-                    usuarioId: String(user.uid),
-                    usuarioNombre: String(user.displayName || 'Usuario'),
-                    usuarioEmail: String(user.email),
-                    fecha: fechaString,              // ✅ String: "2025-10-31"
-                    hora: horaString,                // ✅ String: "17:30"
+                    usuarioId: user.uid,
+                    usuarioEmail: user.email,
+                    usuarioNombre: user.displayName || 'Usuario',
+                    fecha: fecha,  // Ya convertido a string arriba
+                    hora: hora,    // Ya convertido a string arriba
                     servicio: {
-                        id: String(servicio.id),
-                        nombre: String(servicio.nombre),
-                        duracion: Number(servicio.duracion),
-                        precio: Number(servicio.precio)
+                        id: String(servicio.id || ''),
+                        nombre: String(servicio.nombre || ''),
+                        duracion: Number(servicio.duracion || 0),
+                        precio: Number(servicio.precio || 0)
                     },
-                    estado: 'confirmado'
-                    // ❌ REMOVIDO: createdAt (causa error en transacciones con Firestore)
+                    estado: 'confirmado',
+                    modificacionesCount: 0
                 };
 
-                console.log('📝 Datos del turno a guardar (SOLO PRIMITIVOS):', {
+                // FORZAR serialización - esto elimina CUALQUIER cosa no serializable
+                const datosTurno = JSON.parse(JSON.stringify(tempData));
+
+                // Agregar el Timestamp DESPUÉS de la serialización
+                datosTurno.createdAt = firebase.firestore.Timestamp.now();
+
+                console.log('✅ TURNO DATA LIMPIO (después de JSON.parse):', datosTurno);
+                console.log('✅ Tipo de fecha:', typeof datosTurno.fecha, '=', datosTurno.fecha);
+                console.log('✅ Tipo de hora:', typeof datosTurno.hora, '=', datosTurno.hora);
+                console.log('✅ Tipo de createdAt:', typeof datosTurno.createdAt, '=', datosTurno.createdAt);
+                console.log('');
+
+                console.log('📝 DATOS DEL TURNO A GUARDAR (VALIDACIÓN COMPLETA):', {
                     fecha: datosTurno.fecha,
                     tipoFecha: typeof datosTurno.fecha,
                     hora: datosTurno.hora,
                     tipoHora: typeof datosTurno.hora,
-                    servicioId: datosTurno.servicio.id
+                    estado: datosTurno.estado,
+                    tipoEstado: typeof datosTurno.estado,
+                    createdAt: datosTurno.createdAt,
+                    tipoCreatedAt: typeof datosTurno.createdAt,
+                    servicio: {
+                        id: datosTurno.servicio.id,
+                        tipoId: typeof datosTurno.servicio.id,
+                        nombre: datosTurno.servicio.nombre,
+                        tipoNombre: typeof datosTurno.servicio.nombre,
+                        duracion: datosTurno.servicio.duracion,
+                        tipoDuracion: typeof datosTurno.servicio.duracion,
+                        precio: datosTurno.servicio.precio,
+                        tipoPrecio: typeof datosTurno.servicio.precio
+                    }
                 });
+
+                // 🔍 DEBUG ULTRA DETALLADO - Analizar objeto antes de guardar
+                console.log('');
+                console.log('========================================');
+                console.log('🔍 DEBUG - Objeto datosTurno ANTES de guardar:');
+                console.log('========================================');
+                console.log('Tipo de datosTurno:', typeof datosTurno);
+                console.log('Contenido completo:', datosTurno);
+                console.log('');
+                console.log('Tipo de cada campo:');
+                Object.keys(datosTurno).forEach(key => {
+                    const value = datosTurno[key];
+                    const tipo = typeof value;
+                    console.log(`  - ${key}: ${tipo} =`, value);
+
+                    // Si es objeto, mostrar sus propiedades
+                    if (tipo === 'object' && value !== null) {
+                        console.log(`    Propiedades de ${key}:`, Object.keys(value));
+                        if (key === 'servicio') {
+                            Object.keys(value).forEach(subKey => {
+                                console.log(`      - ${subKey}: ${typeof value[subKey]} =`, value[subKey]);
+                            });
+                        }
+                    }
+                });
+                console.log('');
+                console.log('¿JSON serializable?');
+                try {
+                    const jsonString = JSON.stringify(datosTurno);
+                    console.log('✅ SÍ - JSON:', jsonString.substring(0, 200) + '...');
+                } catch (err) {
+                    console.log('❌ NO - Error:', err.message);
+                }
+                console.log('========================================');
+                console.log('');
 
                 // Guardar directamente - sin sanitización ni conversión
                 transaction.set(turnoRef, datosTurno);
@@ -378,8 +555,8 @@ class GestorTurnos {
                 const datosAnteriores = {
                     previousDate: turnoData.fecha,
                     previousTime: turnoData.hora,
-                    modificationsCount: modificacionesCount + 1
-                    // ❌ REMOVIDO: modifiedAt (causa error en transacciones)
+                    modificationsCount: modificacionesCount + 1,
+                    modifiedAt: firebase.firestore.Timestamp.now()  // ✅ Timestamp de modificación
                 };
 
                 // Actualizar el turno (usando STRING para fecha)
@@ -1680,6 +1857,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Cargar servicios desde Firestore
             await cargarServiciosDesdeFirestore();
 
+            // ✅ AUTO-MIGRACIÓN: Ejecutar antes de cargar los turnos
+            // Convierte fechas de Timestamp a String si es necesario
+            await migrarMisTurnosAutomatico();
+
             // Inicializar UI
             UI.renderServicios();
             await UI.renderCalendario();
@@ -1808,7 +1989,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('✅ Keys del servicio:', Object.keys(servicioLimpio));
 
             // ✅ LOG CRÍTICO - Ver qué se pasa a reservarTurno
-            console.log('📤 LLAMANDO a reservarTurno() con:', {
+            console.log('📤 ANTES DE CONVERTIR - Datos originales:', {
                 fecha: gestorTurnos.fechaSeleccionada,
                 tipoFecha: typeof gestorTurnos.fechaSeleccionada,
                 esFechaDate: gestorTurnos.fechaSeleccionada instanceof Date,
@@ -1816,9 +1997,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 tipoHora: typeof gestorTurnos.horaSeleccionada
             });
 
+            // 🔥 FIX CRÍTICO - Convertir fecha a string ANTES de pasar a reservarTurno
+            const fechaString = gestorTurnos.fechaSeleccionada instanceof Date
+                ? gestorTurnos.fechaSeleccionada.toISOString().split('T')[0]
+                : String(gestorTurnos.fechaSeleccionada).split('T')[0];
+
+            const horaString = String(gestorTurnos.horaSeleccionada);
+
+            console.log('✅ DESPUÉS DE CONVERTIR - Datos convertidos:', {
+                fechaString: fechaString,
+                tipoFecha: typeof fechaString,
+                esFechaDate: fechaString instanceof Date,
+                horaString: horaString,
+                tipoHora: typeof horaString
+            });
+
             await gestorTurnos.reservarTurno(
-                gestorTurnos.fechaSeleccionada,
-                gestorTurnos.horaSeleccionada,
+                fechaString,    // ✅ String: "2025-10-24"
+                horaString,     // ✅ String: "12:00"
                 servicioLimpio
             );
 

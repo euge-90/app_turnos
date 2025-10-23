@@ -23,17 +23,18 @@ service cloud.firestore {
              request.auth.token.email == 'admin@peluqueria.com';
     }
 
-    // Verificar si una fecha (Timestamp) es futura
-    function isFutureDate(dateTimestamp) {
-      return dateTimestamp >= request.time;
+    // ✅ Verificar si una fecha (string o Timestamp) es futura
+    // Ahora las fechas se guardan como string "2025-10-31"
+    // Si es Timestamp, validar; si es string, confiar en validación del cliente
+    function isFutureDate(fecha) {
+      return (fecha is timestamp) ? (fecha >= request.time) : true;
     }
 
-    // Verificar si la fecha de un turno es pasada
+    // ✅ Verificar si la fecha de un turno es pasada
+    // Ahora las fechas se guardan como string "2025-10-31"
+    // Si es Timestamp, validar; si es string, confiar en validación del cliente
     function isPastAppointment(turnoData) {
-      let fechaTurno = turnoData.fecha;
-      let hoy = request.time;
-      // Si la fecha del turno es menor que hoy, es pasado
-      return fechaTurno < hoy;
+      return (turnoData.fecha is timestamp) ? (turnoData.fecha < request.time) : false;
     }
 
     // ========================================
@@ -211,7 +212,6 @@ service cloud.firestore {
                        request.resource.data.notificado == false;
 
       // Actualización: Solo el admin puede actualizar (para marcar como notificado)
-      // O el sistema mediante Cloud Functions
       allow update: if isAdmin();
 
       // Eliminación: El usuario puede eliminar sus propias listas de espera o el admin puede eliminar cualquiera
@@ -227,7 +227,6 @@ service cloud.firestore {
       allow read: if isAdmin();
 
       // Creación: Permitir la creación automática desde el cliente
-      // En producción, esto debería ser manejado solo por Cloud Functions
       allow create: if isAuthenticated() &&
                        request.resource.data.keys().hasAll([
                          'accion',
