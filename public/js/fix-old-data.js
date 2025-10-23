@@ -1,20 +1,20 @@
 /**
  * SCRIPT DE MIGRACIÓN DE DATOS ANTIGUOS
- * Convierte fechas de tipo Timestamp a String en la colección 'turnos'
+ * Convierte fechas de tipo String a Timestamp en la colección 'turnos'
  *
  * INSTRUCCIONES:
  * 1. Abrir la app en el navegador: https://appturnos-a085a.web.app/
  * 2. Iniciar sesión con una cuenta de administrador
  * 3. Abrir la consola del navegador (F12 → Console)
  * 4. Copiar y pegar todo este archivo en la consola
- * 5. Ejecutar: migrarDatosAntiguos()
+ * 5. Ejecutar: migrarFechasATimestamp()
  * 6. Esperar a que termine y revisar los logs
  *
  * IMPORTANTE: Ejecutar UNA SOLA VEZ
  */
 
-async function migrarDatosAntiguos() {
-    console.log('🔧 Iniciando migración de datos...');
+async function migrarFechasATimestamp() {
+    console.log('🔧 Iniciando migración de fechas (String ➜ Timestamp)...');
     console.log('⚠️  IMPORTANTE: Este proceso puede tardar varios minutos si tienes muchos turnos');
 
     if (typeof firebase === 'undefined' || !firebase.firestore) {
@@ -40,50 +40,37 @@ async function migrarDatosAntiguos() {
         for (const doc of snapshot.docs) {
             try {
                 const data = doc.data();
-                const updates = {};
-                let needsUpdate = false;
 
-                // Verificar si 'fecha' NO es un string
-                if (data.fecha && typeof data.fecha !== 'string') {
-                    let fechaObj = data.fecha;
-
-                    // Si es Timestamp de Firebase (tiene método toDate)
-                    if (fechaObj.toDate && typeof fechaObj.toDate === 'function') {
-                        fechaObj = fechaObj.toDate();
+                if (typeof data.fecha === 'string') {
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.fecha)) {
+                        console.warn(`  ⚠️  Turno ${doc.id}: formato de fecha inválido (${data.fecha}), se omite`);
+                        skippedCount++;
+                        continue;
                     }
 
-                    // Convertir Date a string ISO formato YYYY-MM-DD
-                    if (fechaObj instanceof Date && !isNaN(fechaObj.getTime())) {
-                        const fechaString = fechaObj.toISOString().split('T')[0];
-                        updates.fecha = fechaString;
-                        needsUpdate = true;
-
-                        console.log(`  ✅ Turno ${doc.id}:`);
-                        console.log(`     Fecha anterior: ${fechaObj}`);
-                        console.log(`     Fecha nueva: ${fechaString}`);
-                    } else {
-                        console.warn(`  ⚠️  Turno ${doc.id}: fecha tiene formato desconocido, se omite`);
+                    const fechaDate = new Date(data.fecha + 'T00:00:00');
+                    if (Number.isNaN(fechaDate.getTime())) {
+                        console.warn(`  ⚠️  Turno ${doc.id}: no se pudo convertir la fecha (${data.fecha})`);
                         skippedCount++;
+                        continue;
                     }
-                } else if (typeof data.fecha === 'string') {
-                    // Ya es string, verificar que tenga formato correcto
-                    if (/^\d{4}-\d{2}-\d{2}$/.test(data.fecha)) {
-                        console.log(`  ⏭️  Turno ${doc.id}: fecha ya es string (${data.fecha}), se omite`);
-                        skippedCount++;
-                    } else {
-                        console.warn(`  ⚠️  Turno ${doc.id}: fecha tiene formato string incorrecto (${data.fecha})`);
-                        skippedCount++;
-                    }
-                } else {
-                    console.warn(`  ⚠️  Turno ${doc.id}: campo fecha es null o undefined`);
-                    skippedCount++;
-                }
 
-                // Actualizar documento si es necesario
-                if (needsUpdate) {
-                    await doc.ref.update(updates);
+                    const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fechaDate);
+
+                    console.log(`  ✅ Turno ${doc.id}:`);
+                    console.log(`     Fecha string: ${data.fecha}`);
+                    console.log(`     Nuevo Timestamp:`, fechaTimestamp.toDate());
+
+                    await doc.ref.update({ fecha: fechaTimestamp });
                     migratedCount++;
                     console.log(`     💾 Actualizado en Firestore\n`);
+
+                } else if (data.fecha && data.fecha.toDate) {
+                    console.log(`  ⏭️  Turno ${doc.id}: fecha ya es Timestamp, se omite`);
+                    skippedCount++;
+                } else {
+                    console.warn(`  ⚠️  Turno ${doc.id}: campo fecha vacío o con formato desconocido`);
+                    skippedCount++;
                 }
 
             } catch (error) {
@@ -94,7 +81,7 @@ async function migrarDatosAntiguos() {
 
         console.log('');
         console.log('========================================');
-        console.log('✅ MIGRACIÓN COMPLETADA');
+    console.log('✅ MIGRACIÓN COMPLETADA (String ➜ Timestamp)');
         console.log('========================================');
         console.log(`   📊 Total de turnos revisados: ${snapshot.size}`);
         console.log(`   ✅ Turnos migrados: ${migratedCount}`);
@@ -108,7 +95,7 @@ async function migrarDatosAntiguos() {
             console.log('💡 Ahora puedes probar crear un nuevo turno para verificar que todo funcione correctamente.');
         } else if (skippedCount === snapshot.size) {
             console.log('');
-            console.log('ℹ️  Todos los turnos ya tienen el formato correcto. No fue necesario migrar nada.');
+            console.log('ℹ️  Todos los turnos ya tenían formato Timestamp. No fue necesario migrar nada.');
         }
 
     } catch (error) {
@@ -162,8 +149,8 @@ console.log('========================================');
 console.log('');
 console.log('Comandos disponibles:');
 console.log('');
-console.log('1️⃣  migrarDatosAntiguos()');
-console.log('   Migra TODOS los turnos de Timestamp a String');
+console.log('1️⃣  migrarFechasATimestamp()');
+console.log('   Migra TODOS los turnos de String a Timestamp');
 console.log('');
 console.log('2️⃣  verificarTurno("ID_DEL_TURNO")');
 console.log('   Verifica el formato de fecha de un turno específico');
