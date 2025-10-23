@@ -693,6 +693,10 @@ const UI = {
                 return;
             }
 
+            // Crear contenedor principal
+            const horariosContainer = document.createElement('div');
+            horariosContainer.className = 'horarios-container';
+
             // V2: Horarios sugeridos inteligentes
             const sugeridos = [];
 
@@ -715,11 +719,28 @@ const UI = {
                 sugeridos.push({ hora: horarios[horarios.length - 1], tipo: 'Último horario' });
             }
 
+            // Crear header con título y botón toggle
+            const header = document.createElement('div');
+            header.className = 'horarios-header';
+
+            const titulo = document.createElement('h5');
+            titulo.innerHTML = '⭐ Horarios Sugeridos';
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn-toggle-horarios';
+            toggleBtn.textContent = `Ver todos los horarios (${horarios.length})`;
+
+            header.appendChild(titulo);
+            header.appendChild(toggleBtn);
+            horariosContainer.appendChild(header);
+
             // Mostrar horarios sugeridos
             if (sugeridos.length > 0) {
                 const sugeridosSection = document.createElement('div');
                 sugeridosSection.className = 'horarios-sugeridos';
-                sugeridosSection.innerHTML = '<h4 style="margin: 0 0 1rem 0; color: var(--primary-color);">⭐ Horarios Sugeridos</h4>';
+
+                const sugeridosGrid = document.createElement('div');
+                sugeridosGrid.className = 'horarios-sugeridos-grid';
 
                 sugeridos.forEach(({ hora, tipo }) => {
                     const btn = document.createElement('button');
@@ -737,19 +758,16 @@ const UI = {
                         UI.mostrarConfirmacion();
                     });
 
-                    sugeridosSection.appendChild(btn);
+                    sugeridosGrid.appendChild(btn);
                 });
 
-                container.appendChild(sugeridosSection);
+                sugeridosSection.appendChild(sugeridosGrid);
+                horariosContainer.appendChild(sugeridosSection);
             }
 
-            // Sección "Ver todos los horarios"
+            // Sección "Todos los horarios"
             const todosSection = document.createElement('div');
             todosSection.className = 'todos-horarios';
-
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'btn-secondary';
-            toggleBtn.textContent = `Ver todos los horarios (${horarios.length})`;
 
             const horariosGrid = document.createElement('div');
             horariosGrid.className = 'horarios-grid';
@@ -759,6 +777,7 @@ const UI = {
                 const isVisible = horariosGrid.style.display !== 'none';
                 horariosGrid.style.display = isVisible ? 'none' : 'grid';
                 toggleBtn.textContent = isVisible ? `Ver todos los horarios (${horarios.length})` : 'Ocultar horarios';
+                titulo.innerHTML = isVisible ? '⭐ Horarios Sugeridos' : '📋 Todos los Horarios';
             });
 
             horarios.forEach(hora => {
@@ -777,9 +796,9 @@ const UI = {
                 horariosGrid.appendChild(btn);
             });
 
-            todosSection.appendChild(toggleBtn);
             todosSection.appendChild(horariosGrid);
-            container.appendChild(todosSection);
+            horariosContainer.appendChild(todosSection);
+            container.appendChild(horariosContainer);
         } catch (error) {
             container.innerHTML = '<p style="text-align: center; color: #f44336;">Error al cargar horarios</p>';
             console.error('Error:', error);

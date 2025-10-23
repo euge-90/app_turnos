@@ -459,86 +459,151 @@ section h3 {
 }
 
 /* V2: Horarios sugeridos */
-.horarios-sugeridos {
-    margin-bottom: 1.5rem;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-    border-radius: var(--border-radius);
-    border: 2px dashed var(--warning-color);
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+/* Contenedor principal de horarios */
+.horarios-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    margin-top: 1rem;
 }
 
-.horarios-sugeridos h4 {
-    grid-column: 1 / -1;
+/* Header con título y botón ocultar */
+.horarios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0;
+}
+
+.horarios-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Horarios sugeridos - Layout horizontal */
+.horarios-sugeridos {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.horarios-sugeridos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 .horario-sugerido {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 1rem;
     background: white;
-    border: 2px solid var(--warning-color);
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+    border: 2px solid #fdcb6e;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .horario-sugerido:hover {
-    border-color: var(--warning-color);
-    background: #fff8e1;
-    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 203, 110, 0.4);
+    border-color: #f39c12;
 }
 
 .horario-sugerido.selected {
-    background: var(--warning-color);
+    background: #2196f3;
+    border-color: #1976d2;
     color: white;
-    border-color: #f57c00;
 }
 
-.hora-principal {
-    font-size: 1.2rem;
-    font-weight: 700;
+.horario-sugerido .hora-principal {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    display: block;
 }
 
-.hora-tipo {
+.horario-sugerido.selected .hora-principal {
+    color: white;
+}
+
+.horario-sugerido .hora-tipo {
     font-size: 0.75rem;
-    opacity: 0.8;
-    font-weight: 500;
+    color: #7f8c8d;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.horario-sugerido.selected .hora-tipo {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Grid de todos los horarios */
+.todos-horarios {
+    width: 100%;
 }
 
 .horarios-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 0.75rem;
-}
-
-/* Sección de todos los horarios */
-.todos-horarios {
-    display: block;
-    width: 100%;
-    clear: both;
-    margin-top: 1.5rem;
     padding: 1rem;
-    background: var(--bg-light);
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #f8f9fa;
+    border-radius: 8px;
 }
 
-.todos-horarios .btn-secondary {
-    width: 100%;
-    margin-bottom: 0;
-}
-
-.todos-horarios .horarios-grid {
-    margin-top: 1rem;
+.horario-btn {
+    padding: 0.75rem;
     background: white;
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.horario-btn:hover:not(.ocupado):not(.disabled) {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    transform: scale(1.05);
+}
+
+.horario-btn.ocupado {
+    background: #ffebee;
+    border-color: #ef5350;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.horario-btn.selected {
+    background: #2196f3;
+    border-color: #1976d2;
+    color: white;
+}
+
+/* Botón toggle horarios */
+.btn-toggle-horarios,
+.btn-secondary {
+    padding: 0.5rem 1rem;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.3s ease;
+}
+
+.btn-toggle-horarios:hover,
+.btn-secondary:hover {
+    background: #5a6268;
 }
 
 /* Confirmación */
@@ -1051,7 +1116,12 @@ body.dark-mode .btn-dark-mode-login {
     }
 
     .horarios-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .horarios-sugeridos-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     }
 
     .todos-horarios {
@@ -1093,6 +1163,17 @@ body.dark-mode .btn-dark-mode-login {
 @media (max-width: 480px) {
     .horarios-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .horarios-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .btn-toggle-horarios,
+    .btn-secondary {
+        width: 100%;
     }
 
     .stats-grid {
@@ -1738,38 +1819,30 @@ input.is-valid:focus {
     }
 
     .horarios-sugeridos {
-        padding: 1.75rem;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        display: grid;
+        padding: 2rem;
     }
 
-    .horarios-sugeridos h4 {
-        font-size: 1.2rem;
-        grid-column: 1 / -1;
+    .horarios-sugeridos-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
     }
 
     .horario-sugerido {
         padding: 1.25rem;
     }
 
-    .hora-principal {
+    .horario-sugerido .hora-principal {
+        font-size: 1.4rem;
+    }
+
+    .horarios-header h5 {
         font-size: 1.3rem;
     }
 
-    /* Separar sección de todos los horarios */
-    .todos-horarios {
-        margin-top: 2rem;
-        display: block;
-        width: 100%;
-        padding: 1.5rem;
-    }
-
     .todos-horarios .horarios-grid {
-        padding: 1.25rem;
-        display: grid;
         grid-template-columns: repeat(6, 1fr);
         gap: 1rem;
+        padding: 1.25rem;
     }
 
     /* Mejorar confirmación */
@@ -1824,20 +1897,17 @@ input.is-valid:focus {
     }
 
     .horarios-sugeridos {
-        gap: 1.25rem;
-        display: grid;
+        padding: 2.25rem;
     }
 
-    .todos-horarios {
-        margin-top: 2.5rem;
-        padding: 2rem;
+    .horarios-sugeridos-grid {
+        gap: 1.5rem;
     }
 
     .todos-horarios .horarios-grid {
-        padding: 1.5rem;
-        display: grid;
         grid-template-columns: repeat(8, 1fr);
         gap: 1.25rem;
+        padding: 1.5rem;
     }
 
     .confirmacion-section {
