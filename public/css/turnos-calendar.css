@@ -1613,3 +1613,87 @@ input.is-valid:focus {
         padding: 0.5rem;
     }
 }
+
+/* ========================================
+   ESTILOS PARA PANTALLAS GRANDES (Desktop)
+   ======================================== */
+@media (min-width: 769px) {
+    /* Mejorar visualización del calendario en desktop */
+    .calendar-section {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .calendar-grid {
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-day {
+        min-height: 70px;
+        font-size: 1.1rem;
+        padding: 0.5rem;
+    }
+
+    .calendar-day.header {
+        min-height: 45px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg-light) 100%);
+    }
+
+    .day-number {
+        font-size: 1.1rem;
+    }
+
+    .turnos-badge {
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+    }
+
+    /* Mejorar controles del calendario */
+    .calendar-controls {
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-controls h4 {
+        font-size: 1.4rem;
+    }
+
+    .btn-month {
+        padding: 0.75rem 1.25rem;
+        font-size: 1.2rem;
+    }
+
+    /* Mejorar leyenda */
+    .calendar-legend {
+        gap: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .calendar-legend .dot {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+@media (min-width: 1024px) {
+    /* Pantallas extra grandes */
+    .calendar-section {
+        max-width: 800px;
+    }
+
+    .calendar-grid {
+        gap: 1rem;
+    }
+
+    .calendar-day {
+        min-height: 80px;
+        font-size: 1.15rem;
+    }
+
+    .day-number {
+        font-size: 1.2rem;
+    }
+}
