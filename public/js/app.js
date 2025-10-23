@@ -349,8 +349,8 @@ class GestorTurnos {
                 // FORZAR serialización - esto elimina CUALQUIER cosa no serializable
                 const datosTurno = JSON.parse(JSON.stringify(tempData));
 
-                // Agregar el Timestamp DESPUÉS de la serialización
-                datosTurno.createdAt = firebase.firestore.Timestamp.now();
+                // Agregar el serverTimestamp DESPUÉS de la serialización
+                datosTurno.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
                 console.log('✅ TURNO DATA LIMPIO (después de JSON.parse):', datosTurno);
                 console.log('✅ Tipo de fecha:', typeof datosTurno.fecha, '=', datosTurno.fecha);
