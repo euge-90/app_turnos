@@ -513,6 +513,13 @@ section h3 {
     gap: 0.75rem;
 }
 
+/* Sección de todos los horarios */
+.todos-horarios {
+    display: block;
+    width: 100%;
+    clear: both;
+}
+
 /* Confirmación */
 .confirmacion-detalle {
     background: var(--bg-light);
@@ -1705,10 +1712,12 @@ input.is-valid:focus {
         padding: 1.75rem;
         grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
+        display: grid;
     }
 
     .horarios-sugeridos h4 {
         font-size: 1.2rem;
+        grid-column: 1 / -1;
     }
 
     .horario-sugerido {
@@ -1717,6 +1726,13 @@ input.is-valid:focus {
 
     .hora-principal {
         font-size: 1.3rem;
+    }
+
+    /* Separar sección de todos los horarios */
+    .todos-horarios {
+        margin-top: 2rem;
+        display: block;
+        width: 100%;
     }
 
     /* Mejorar confirmación */
@@ -1772,6 +1788,11 @@ input.is-valid:focus {
 
     .horarios-sugeridos {
         gap: 1.25rem;
+        display: grid;
+    }
+
+    .todos-horarios {
+        margin-top: 2.5rem;
     }
 
     .confirmacion-section {
