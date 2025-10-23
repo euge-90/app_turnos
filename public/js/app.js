@@ -282,12 +282,28 @@ class GestorTurnos {
         let turnoId;
         try {
             turnoId = await db.runTransaction(async (transaction) => {
-                const disponibilidadSnapshot = await transaction.get(
-                    db.collection('turnos')
-                        .where('fecha', '==', fechaTimestamp)
-                        .where('hora', '==', horaNormalizada)
-                        .where('estado', '==', 'confirmado')
-                );
+                console.log('🔎 Consultando disponibilidad con:', {
+                    tipoFecha: fechaTimestamp?.constructor?.name,
+                    fechaTimestamp,
+                    horaNormalizada
+                });
+
+                let disponibilidadSnapshot;
+                try {
+                    disponibilidadSnapshot = await transaction.get(
+                        db.collection('turnos')
+                            .where('fecha', '==', fechaTimestamp)
+                            .where('hora', '==', horaNormalizada)
+                            .where('estado', '==', 'confirmado')
+                    );
+                } catch (consultaError) {
+                    console.error('🔥 Error al consultar disponibilidad:', consultaError, {
+                        fechaTimestamp,
+                        tipoFecha: fechaTimestamp?.constructor?.name,
+                        horaNormalizada
+                    });
+                    throw consultaError;
+                }
 
                 if (!disponibilidadSnapshot.empty) {
                     throw new Error('HORARIO_NO_DISPONIBLE');
