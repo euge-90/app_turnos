@@ -465,6 +465,13 @@ section h3 {
     background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
     border-radius: var(--border-radius);
     border: 2px dashed var(--warning-color);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.horarios-sugeridos h4 {
+    grid-column: 1 / -1;
 }
 
 .horario-sugerido {
@@ -1676,6 +1683,56 @@ input.is-valid:focus {
         width: 14px;
         height: 14px;
     }
+
+    /* Mejorar visualización de horarios en desktop */
+    .horarios-section {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .horarios-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
+    }
+
+    .horario-btn {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        min-height: 60px;
+    }
+
+    .horarios-sugeridos {
+        padding: 1.75rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .horarios-sugeridos h4 {
+        font-size: 1.2rem;
+    }
+
+    .horario-sugerido {
+        padding: 1.25rem;
+    }
+
+    .hora-principal {
+        font-size: 1.3rem;
+    }
+
+    /* Mejorar confirmación */
+    .confirmacion-section {
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .confirmacion-detalle {
+        padding: 2rem;
+    }
+
+    .confirmacion-detalle p {
+        font-size: 1.1rem;
+        margin: 1rem 0;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -1695,5 +1752,29 @@ input.is-valid:focus {
 
     .day-number {
         font-size: 1.2rem;
+    }
+
+    /* Horarios en pantallas extra grandes */
+    .horarios-section {
+        max-width: 850px;
+    }
+
+    .horarios-grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1.25rem;
+    }
+
+    .horario-btn {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+        min-height: 70px;
+    }
+
+    .horarios-sugeridos {
+        gap: 1.25rem;
+    }
+
+    .confirmacion-section {
+        max-width: 700px;
     }
 }
