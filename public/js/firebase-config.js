@@ -44,16 +44,30 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 const Utils = {
     // Formatear fecha a texto
     formatearFecha(fecha) {
-        // ✅ Convertir a Date si es string
-        const fechaObj = fecha instanceof Date ? fecha : new Date(fecha);
+        // ✅ Manejar Timestamp de Firestore, Date, o String
+        let fechaObj;
+        if (fecha && typeof fecha.toDate === 'function') {
+            fechaObj = fecha.toDate(); // Firestore Timestamp
+        } else if (fecha instanceof Date) {
+            fechaObj = fecha;
+        } else {
+            fechaObj = new Date(fecha);
+        }
         const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         return fechaObj.toLocaleDateString('es-AR', opciones);
     },
 
     // Formatear fecha corta
     formatearFechaCorta(fecha) {
-        // ✅ Convertir a Date si es string
-        const fechaObj = fecha instanceof Date ? fecha : new Date(fecha);
+        // ✅ Manejar Timestamp de Firestore, Date, o String
+        let fechaObj;
+        if (fecha && typeof fecha.toDate === 'function') {
+            fechaObj = fecha.toDate(); // Firestore Timestamp
+        } else if (fecha instanceof Date) {
+            fechaObj = fecha;
+        } else {
+            fechaObj = new Date(fecha);
+        }
         const dia = fechaObj.getDate().toString().padStart(2, '0');
         const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
         const año = fechaObj.getFullYear();

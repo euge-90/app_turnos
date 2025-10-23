@@ -474,12 +474,15 @@ class GestorTurnos {
         if (!user) return [];
 
         try {
-            const hoyString = new Date().toISOString().split('T')[0];
+            // Crear Timestamp para hoy a las 00:00
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const hoyTimestamp = firebase.firestore.Timestamp.fromDate(hoy);
 
             const snapshot = await db.collection('turnos')
                 .where('usuarioId', '==', user.uid)
                 .where('estado', '==', 'confirmado')
-                .where('fecha', '>=', hoyString)
+                .where('fecha', '>=', hoyTimestamp)
                 .get();
 
             // Ordenar y limitar en JavaScript
@@ -487,11 +490,12 @@ class GestorTurnos {
                 .map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                    // fecha ya es string, no necesita conversión
                 }))
                 .sort((a, b) => {
-                    // Ordenar por fecha (strings se comparan alfabéticamente)
-                    const fechaDiff = a.fecha.localeCompare(b.fecha);
+                    // Ordenar por fecha (Timestamp)
+                    const fechaA = a.fecha.toMillis ? a.fecha.toMillis() : new Date(a.fecha).getTime();
+                    const fechaB = b.fecha.toMillis ? b.fecha.toMillis() : new Date(b.fecha).getTime();
+                    const fechaDiff = fechaA - fechaB;
                     if (fechaDiff !== 0) return fechaDiff;
                     // Si la fecha es igual, ordenar por hora
                     return a.hora.localeCompare(b.hora);
@@ -822,7 +826,7 @@ const UI = {
                 const card = document.createElement('div');
                 card.className = 'turno-card';
 
-                const fechaHora = new Date(turno.fecha);
+                const fechaHora = parseFechaFirestore(turno.fecha);
                 const [hora, minuto] = turno.hora.split(':');
                 fechaHora.setHours(parseInt(hora), parseInt(minuto));
 
