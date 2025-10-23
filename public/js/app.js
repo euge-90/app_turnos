@@ -1117,8 +1117,19 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
                 }
 
                 // Aplicar filtro de estado
-                if (filters.status !== 'all' && turno.estado !== filters.status) {
-                    return false;
+                if (filters.status !== 'all') {
+                    // Mapear filtros del HTML a estados reales de la BD
+                    if (filters.status === 'cancelled') {
+                        // Filtrar solo cancelados
+                        if (turno.estado !== 'cancelado') {
+                            return false;
+                        }
+                    } else if (filters.status === 'completed') {
+                        // Filtrar solo completados (confirmados con fecha pasada)
+                        if (!(turno.estado === 'confirmado' && turno.fecha < ahora)) {
+                            return false;
+                        }
+                    }
                 }
 
                 return true;
@@ -1175,10 +1186,11 @@ async function cargarHistorial() {
         }
 
         // Calcular estadísticas (solo si hay turnos)
+        const ahora = new Date();
         const stats = {
             total: turnos.length,
-            completed: turnos.filter(t => t.estado === 'completed').length,
-            cancelled: turnos.filter(t => t.estado === 'cancelled').length
+            completed: turnos.filter(t => t.estado === 'confirmado' && t.fecha < ahora).length,
+            cancelled: turnos.filter(t => t.estado === 'cancelado').length
         };
 
         // Renderizar estadísticas
@@ -1212,11 +1224,7 @@ async function cargarHistorial() {
             let estadoTexto = '';
             let estadoClass = '';
 
-            if (turno.estado === 'completed') {
-                estadoIcon = '✅';
-                estadoTexto = 'Completado';
-                estadoClass = 'completed';
-            } else if (turno.estado === 'cancelled') {
+            if (turno.estado === 'cancelado') {
                 estadoIcon = '❌';
                 estadoTexto = 'Cancelado';
                 estadoClass = 'cancelled';
@@ -1227,8 +1235,13 @@ async function cargarHistorial() {
                     const fechaCancelacion = parseFechaFirestore(turno.canceladoAt);
                     estadoTexto += ` (${Utils.formatearFechaCorta(fechaCancelacion)})`;
                 }
+            } else if (turno.estado === 'confirmado' && turno.fecha < ahora) {
+                // Turno confirmado y fecha pasada = completado
+                estadoIcon = '✅';
+                estadoTexto = 'Completado';
+                estadoClass = 'completed';
             } else {
-                // Estado confirmado pero fecha pasada (no asistió)
+                // Estado confirmado pero fecha pasada (no asistió) - caso excepcional
                 estadoIcon = '⚠️';
                 estadoTexto = 'No asistió';
                 estadoClass = 'cancelled';
