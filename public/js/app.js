@@ -57,7 +57,12 @@ class GestorTurnos {
 
     // Obtener horarios disponibles para una fecha
     async obtenerHorariosDisponibles(fecha) {
-        const cacheKey = fecha.toDateString();
+        // ✅ Convertir fecha a string
+        const fechaString = fecha instanceof Date
+            ? fecha.toISOString().split('T')[0]
+            : String(fecha).split('T')[0];
+
+        const cacheKey = fechaString;
 
         // Verificar cache
         if (this.cache.has(cacheKey)) {
@@ -68,22 +73,15 @@ class GestorTurnos {
         }
 
         try {
-            // Obtener turnos ocupados de Firebase
-            const inicio = new Date(fecha);
-            inicio.setHours(0, 0, 0, 0);
-            const fin = new Date(fecha);
-            fin.setHours(23, 59, 59, 999);
-
+            // Obtener turnos ocupados de Firebase usando string
             const snapshot = await db.collection('turnos')
-                .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
-                .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
+                .where('fecha', '==', fechaString)
+                .where('estado', '==', 'confirmado')
                 .get();
 
-            // Filtrar solo los confirmados y obtener horas ocupadas
+            // Obtener horas ocupadas (ya filtradas por estado en query)
             const ocupados = new Set(
-                snapshot.docs
-                    .filter(doc => doc.data().estado === 'confirmado')
-                    .map(doc => doc.data().hora)
+                snapshot.docs.map(doc => doc.data().hora)
             );
 
             // Generar horarios disponibles
@@ -123,54 +121,44 @@ class GestorTurnos {
         const user = auth.currentUser;
         if (!user) throw new Error('Debes iniciar sesión');
 
-        // ✅ VALIDACIÓN CRÍTICA - Asegurar que fecha sea un objeto Date válido
-        console.log('🔍 Validando entrada a reservarTurno:', {
-            fecha: fecha,
-            tipoFecha: typeof fecha,
-            esDate: fecha instanceof Date,
-            hora: hora,
-            tipoHora: typeof hora
+        // ✅ CONVERTIR Date a STRING inmediatamente
+        let fechaString;
+        if (fecha instanceof Date) {
+            fechaString = fecha.toISOString().split('T')[0]; // "2025-10-31"
+        } else if (typeof fecha === 'string') {
+            fechaString = fecha.split('T')[0]; // Por si viene con hora
+        } else {
+            fechaString = new Date(fecha).toISOString().split('T')[0];
+        }
+
+        // ✅ Asegurar que hora sea string
+        const horaString = String(hora);
+
+        console.log('✅ Datos convertidos a tipos primitivos:', {
+            fechaString: fechaString,
+            tipoFecha: typeof fechaString,
+            horaString: horaString,
+            tipoHora: typeof horaString
         });
 
-        // Convertir a Date si no lo es
-        if (!(fecha instanceof Date)) {
-            console.warn('⚠️ Fecha no es Date, convirtiendo...', fecha);
-            fecha = new Date(fecha);
+        // Validar que la fecha no sea pasada
+        const fechaTurno = new Date(fechaString + 'T00:00:00');
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+
+        if (fechaTurno < ahora) {
+            throw new Error('No puedes reservar turnos en fechas pasadas');
         }
 
-        // Validar que sea una fecha válida
-        if (isNaN(fecha.getTime())) {
-            throw new Error('Fecha inválida');
-        }
-
-        // ✅ Validar y convertir hora a string
-        if (typeof hora !== 'string') {
-            console.warn('⚠️ Hora no es string, convirtiendo...', hora);
-            hora = String(hora);
-        }
-
-        // Log de depuración
-        console.log('🔍 Reservando turno - Versión actualizada', {
-            servicio: servicio,
-            servicioTipo: typeof servicio,
-            servicioKeys: Object.keys(servicio)
-        });
-
-        const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fecha);
-        console.log('✅ Timestamp creado:', fechaTimestamp, 'Tipo:', fechaTimestamp.constructor.name);
-
-        // Verificar límite de turnos ANTES de la transacción (optimización)
+        // Verificar límite de turnos activos
+        const hoyString = ahora.toISOString().split('T')[0];
         const turnosActivosSnapshot = await db.collection('turnos')
             .where('usuarioId', '==', user.uid)
             .where('estado', '==', 'confirmado')
+            .where('fecha', '>=', hoyString)
             .get();
 
-        const ahora = firebase.firestore.Timestamp.fromDate(new Date());
-        const turnosActivos = turnosActivosSnapshot.docs.filter(doc =>
-            doc.data().fecha >= ahora
-        );
-
-        if (turnosActivos.length >= CONFIG.maxTurnosPorUsuario) {
+        if (turnosActivosSnapshot.size >= CONFIG.maxTurnosPorUsuario) {
             throw new Error(`Máximo ${CONFIG.maxTurnosPorUsuario} turnos activos permitidos`);
         }
 
@@ -181,8 +169,8 @@ class GestorTurnos {
                 // 1. Verificar disponibilidad DENTRO de la transacción
                 const querySnapshot = await transaction.get(
                     db.collection('turnos')
-                        .where('fecha', '==', fechaTimestamp)
-                        .where('hora', '==', hora)
+                        .where('fecha', '==', fechaString)
+                        .where('hora', '==', horaString)
                         .where('estado', '==', 'confirmado')
                 );
 
@@ -194,62 +182,34 @@ class GestorTurnos {
                 // 3. Crear el turno de forma atómica
                 const turnoRef = db.collection('turnos').doc();
 
-                // DEBUG: Construir objeto paso a paso
-                const datosServicio = {
-                    id: String(servicio.id),
-                    nombre: String(servicio.nombre),
-                    duracion: Number(servicio.duracion),
-                    precio: Number(servicio.precio)
-                };
-
+                // Construir objeto con SOLO tipos primitivos
                 const datosTurno = {
                     id: turnoRef.id,
-                    usuarioId: user.uid,
-                    usuarioNombre: user.displayName || 'Usuario',
-                    usuarioEmail: user.email,
-                    fecha: fechaTimestamp,
-                    hora: String(hora),
-                    servicio: datosServicio,
+                    usuarioId: String(user.uid),
+                    usuarioNombre: String(user.displayName || 'Usuario'),
+                    usuarioEmail: String(user.email),
+                    fecha: fechaString,              // ✅ String: "2025-10-31"
+                    hora: horaString,                // ✅ String: "17:30"
+                    servicio: {
+                        id: String(servicio.id),
+                        nombre: String(servicio.nombre),
+                        duracion: Number(servicio.duracion),
+                        precio: Number(servicio.precio)
+                    },
                     estado: 'confirmado',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
-                console.log('📝 Datos del turno a guardar:', datosTurno);
-                console.log('📝 Tipo de fecha:', fechaTimestamp.constructor.name);
-                console.log('📝 Verificar cada campo:');
-                console.log('  - id:', typeof datosTurno.id, datosTurno.id);
-                console.log('  - usuarioId:', typeof datosTurno.usuarioId, datosTurno.usuarioId);
-                console.log('  - usuarioNombre:', typeof datosTurno.usuarioNombre, datosTurno.usuarioNombre);
-                console.log('  - usuarioEmail:', typeof datosTurno.usuarioEmail, datosTurno.usuarioEmail);
-                console.log('  - fecha:', typeof datosTurno.fecha, datosTurno.fecha);
-                console.log('  - hora:', typeof datosTurno.hora, datosTurno.hora);
-                console.log('  - servicio:', typeof datosTurno.servicio, datosTurno.servicio);
-                console.log('  - estado:', typeof datosTurno.estado, datosTurno.estado);
-                console.log('  - createdAt:', datosTurno.createdAt);
+                console.log('📝 Datos del turno a guardar (SOLO PRIMITIVOS):', {
+                    fecha: datosTurno.fecha,
+                    tipoFecha: typeof datosTurno.fecha,
+                    hora: datosTurno.hora,
+                    tipoHora: typeof datosTurno.hora,
+                    servicioId: datosTurno.servicio.id
+                });
 
-                // Intentar con objeto completamente plano
-                const datosLimpios = {
-                    id: turnoRef.id,
-                    usuarioId: user.uid,
-                    usuarioNombre: user.displayName || 'Usuario',
-                    usuarioEmail: user.email,
-                    fecha: fechaTimestamp,
-                    hora: String(hora),
-                    servicio: JSON.parse(JSON.stringify(datosServicio)),
-                    estado: 'confirmado',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                console.log('🧹 Objeto ultra-limpio (antes de sanitizar):', datosLimpios);
-
-                // Asegurar que el objeto enviado a Firestore sea plano y use Timestamps/FieldValues
-                const datosParaFirestore = (typeof Utils !== 'undefined' && Utils.sanitizeForFirestore)
-                    ? Utils.sanitizeForFirestore(datosLimpios)
-                    : datosLimpios;
-
-                console.log('🧾 Datos enviados a Firestore:', datosParaFirestore);
-
-                transaction.set(turnoRef, datosParaFirestore);
+                // Guardar directamente - sin sanitización ni conversión
+                transaction.set(turnoRef, datosTurno);
 
                 // 4. Actualizar contador de turnos del usuario
                 const userRef = db.collection('usuarios').doc(user.uid);
@@ -411,24 +371,24 @@ class GestorTurnos {
         if (!user) return [];
 
         try {
+            const hoyString = new Date().toISOString().split('T')[0];
+
             const snapshot = await db.collection('turnos')
                 .where('usuarioId', '==', user.uid)
                 .where('estado', '==', 'confirmado')
+                .where('fecha', '>=', hoyString)
                 .get();
 
-            const ahora = firebase.firestore.Timestamp.fromDate(new Date());
-
-            // Filtrar, ordenar y limitar en JavaScript
+            // Ordenar y limitar en JavaScript
             return snapshot.docs
                 .map(doc => ({
                     id: doc.id,
-                    ...doc.data(),
-                    fecha: doc.data().fecha.toDate()
+                    ...doc.data()
+                    // fecha ya es string, no necesita conversión
                 }))
-                .filter(turno => turno.fecha >= ahora.toDate())
                 .sort((a, b) => {
-                    // Ordenar por fecha
-                    const fechaDiff = a.fecha - b.fecha;
+                    // Ordenar por fecha (strings se comparan alfabéticamente)
+                    const fechaDiff = a.fecha.localeCompare(b.fecha);
                     if (fechaDiff !== 0) return fechaDiff;
                     // Si la fecha es igual, ordenar por hora
                     return a.hora.localeCompare(b.hora);
