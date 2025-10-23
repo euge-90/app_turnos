@@ -746,17 +746,14 @@ const UI = {
             // Sección "Ver todos los horarios"
             const todosSection = document.createElement('div');
             todosSection.className = 'todos-horarios';
-            todosSection.style.marginTop = '1.5rem';
 
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'btn-secondary';
             toggleBtn.textContent = `Ver todos los horarios (${horarios.length})`;
-            toggleBtn.style.width = '100%';
 
             const horariosGrid = document.createElement('div');
             horariosGrid.className = 'horarios-grid';
             horariosGrid.style.display = 'none';
-            horariosGrid.style.marginTop = '1rem';
 
             toggleBtn.addEventListener('click', () => {
                 const isVisible = horariosGrid.style.display !== 'none';

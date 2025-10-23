@@ -518,6 +518,27 @@ section h3 {
     display: block;
     width: 100%;
     clear: both;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.todos-horarios .btn-secondary {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.todos-horarios .horarios-grid {
+    margin-top: 1rem;
+    background: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
 }
 
 /* Confirmación */
@@ -1031,6 +1052,14 @@ body.dark-mode .btn-dark-mode-login {
 
     .horarios-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+
+    .todos-horarios {
+        padding: 0.75rem;
+    }
+
+    .todos-horarios .horarios-grid {
+        padding: 0.75rem;
     }
 
     section {
@@ -1733,6 +1762,14 @@ input.is-valid:focus {
         margin-top: 2rem;
         display: block;
         width: 100%;
+        padding: 1.5rem;
+    }
+
+    .todos-horarios .horarios-grid {
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
     }
 
     /* Mejorar confirmación */
@@ -1793,6 +1830,14 @@ input.is-valid:focus {
 
     .todos-horarios {
         margin-top: 2.5rem;
+        padding: 2rem;
+    }
+
+    .todos-horarios .horarios-grid {
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1.25rem;
     }
 
     .confirmacion-section {
