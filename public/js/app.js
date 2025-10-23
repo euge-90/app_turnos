@@ -123,7 +123,33 @@ class GestorTurnos {
         const user = auth.currentUser;
         if (!user) throw new Error('Debes iniciar sesión');
 
-        // Log de depuración - VERSIÓN 2024-10-22
+        // ✅ VALIDACIÓN CRÍTICA - Asegurar que fecha sea un objeto Date válido
+        console.log('🔍 Validando entrada a reservarTurno:', {
+            fecha: fecha,
+            tipoFecha: typeof fecha,
+            esDate: fecha instanceof Date,
+            hora: hora,
+            tipoHora: typeof hora
+        });
+
+        // Convertir a Date si no lo es
+        if (!(fecha instanceof Date)) {
+            console.warn('⚠️ Fecha no es Date, convirtiendo...', fecha);
+            fecha = new Date(fecha);
+        }
+
+        // Validar que sea una fecha válida
+        if (isNaN(fecha.getTime())) {
+            throw new Error('Fecha inválida');
+        }
+
+        // ✅ Validar y convertir hora a string
+        if (typeof hora !== 'string') {
+            console.warn('⚠️ Hora no es string, convirtiendo...', hora);
+            hora = String(hora);
+        }
+
+        // Log de depuración
         console.log('🔍 Reservando turno - Versión actualizada', {
             servicio: servicio,
             servicioTipo: typeof servicio,
@@ -131,6 +157,7 @@ class GestorTurnos {
         });
 
         const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fecha);
+        console.log('✅ Timestamp creado:', fechaTimestamp, 'Tipo:', fechaTimestamp.constructor.name);
 
         // Verificar límite de turnos ANTES de la transacción (optimización)
         const turnosActivosSnapshot = await db.collection('turnos')
@@ -1775,6 +1802,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('✅ Servicio limpio creado:', servicioLimpio);
             console.log('✅ Tipo de servicio limpio:', typeof servicioLimpio);
             console.log('✅ Keys del servicio:', Object.keys(servicioLimpio));
+
+            // ✅ LOG CRÍTICO - Ver qué se pasa a reservarTurno
+            console.log('📤 LLAMANDO a reservarTurno() con:', {
+                fecha: gestorTurnos.fechaSeleccionada,
+                tipoFecha: typeof gestorTurnos.fechaSeleccionada,
+                esFechaDate: gestorTurnos.fechaSeleccionada instanceof Date,
+                hora: gestorTurnos.horaSeleccionada,
+                tipoHora: typeof gestorTurnos.horaSeleccionada
+            });
 
             await gestorTurnos.reservarTurno(
                 gestorTurnos.fechaSeleccionada,
