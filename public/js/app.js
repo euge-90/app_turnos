@@ -1,3 +1,26 @@
+// ✅ HELPER: Parsear fecha desde Firestore (puede ser string o Timestamp)
+function parseFechaFirestore(fecha) {
+    if (!fecha) return null;
+
+    // Si es string "2025-10-31", convertir a Date
+    if (typeof fecha === 'string') {
+        return new Date(fecha + 'T00:00:00');
+    }
+
+    // Si es Timestamp de Firestore
+    if (fecha && typeof fecha === 'object' && fecha.toDate) {
+        return fecha.toDate();
+    }
+
+    // Si ya es Date
+    if (fecha instanceof Date) {
+        return fecha;
+    }
+
+    // Fallback
+    return new Date(fecha);
+}
+
 // Gestor de Turnos
 class GestorTurnos {
     constructor() {
@@ -22,14 +45,15 @@ class GestorTurnos {
         }
 
         try {
+            // ✅ Calcular fechas como strings "2025-10-01" y "2025-10-31"
             const inicio = new Date(year, month, 1);
-            inicio.setHours(0, 0, 0, 0);
             const fin = new Date(year, month + 1, 0);
-            fin.setHours(23, 59, 59, 999);
+            const fechaInicioStr = inicio.toISOString().split('T')[0];
+            const fechaFinStr = fin.toISOString().split('T')[0];
 
             const snapshot = await db.collection('turnos')
-                .where('fecha', '>=', firebase.firestore.Timestamp.fromDate(inicio))
-                .where('fecha', '<=', firebase.firestore.Timestamp.fromDate(fin))
+                .where('fecha', '>=', fechaInicioStr)
+                .where('fecha', '<=', fechaFinStr)
                 .where('estado', '==', 'confirmado')
                 .get();
 
@@ -37,7 +61,8 @@ class GestorTurnos {
             const turnosPorDia = {};
             snapshot.docs.forEach(doc => {
                 const turno = doc.data();
-                const fecha = turno.fecha.toDate();
+                // ✅ Parsear fecha (compatible con strings y Timestamps)
+                const fecha = parseFechaFirestore(turno.fecha);
                 const dia = fecha.getDate();
                 turnosPorDia[dia] = (turnosPorDia[dia] || 0) + 1;
             });
@@ -121,12 +146,15 @@ class GestorTurnos {
         const user = auth.currentUser;
         if (!user) throw new Error('Debes iniciar sesión');
 
-        // ✅ CONVERTIR Date a STRING inmediatamente
+        // ✅ CONVERTIR Date a STRING inmediatamente - VERSIÓN ROBUSTA
         let fechaString;
         if (fecha instanceof Date) {
             fechaString = fecha.toISOString().split('T')[0]; // "2025-10-31"
         } else if (typeof fecha === 'string') {
-            fechaString = fecha.split('T')[0]; // Por si viene con hora
+            fechaString = fecha.includes('T') ? fecha.split('T')[0] : fecha;
+        } else if (fecha && typeof fecha === 'object' && fecha.toDate) {
+            // Firestore Timestamp
+            fechaString = fecha.toDate().toISOString().split('T')[0];
         } else {
             fechaString = new Date(fecha).toISOString().split('T')[0];
         }
@@ -134,11 +162,12 @@ class GestorTurnos {
         // ✅ Asegurar que hora sea string
         const horaString = String(hora);
 
-        console.log('✅ Datos convertidos a tipos primitivos:', {
+        console.log('✅ ANTES DE GUARDAR - Datos convertidos a tipos primitivos:', {
             fechaString: fechaString,
             tipoFecha: typeof fechaString,
             horaString: horaString,
-            tipoHora: typeof horaString
+            tipoHora: typeof horaString,
+            verificacion: fechaString.match(/^\d{4}-\d{2}-\d{2}$/) ? 'FORMATO CORRECTO' : 'FORMATO INCORRECTO'
         });
 
         // Validar que la fecha no sea pasada
@@ -196,8 +225,8 @@ class GestorTurnos {
                         duracion: Number(servicio.duracion),
                         precio: Number(servicio.precio)
                     },
-                    estado: 'confirmado',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    estado: 'confirmado'
+                    // ❌ REMOVIDO: createdAt (causa error en transacciones con Firestore)
                 };
 
                 console.log('📝 Datos del turno a guardar (SOLO PRIMITIVOS):', {
@@ -212,10 +241,11 @@ class GestorTurnos {
                 transaction.set(turnoRef, datosTurno);
 
                 // 4. Actualizar contador de turnos del usuario
-                const userRef = db.collection('usuarios').doc(user.uid);
-                transaction.update(userRef, {
-                    turnosReservados: firebase.firestore.FieldValue.increment(1)
-                });
+                // ✅ COMENTADO: FieldValue.increment() puede causar problemas en transacciones
+                // const userRef = db.collection('usuarios').doc(user.uid);
+                // transaction.update(userRef, {
+                //     turnosReservados: firebase.firestore.FieldValue.increment(1)
+                // });
 
                 return turnoRef.id;
             });
@@ -251,7 +281,8 @@ class GestorTurnos {
         }
 
         // Verificar que sea con 1 hora de anticipación (V2: cambiado de 2 a 1 hora)
-        const fechaTurno = turno.data().fecha.toDate();
+        // ✅ Parsear fecha (compatible con strings y Timestamps)
+        const fechaTurno = parseFechaFirestore(turno.data().fecha);
         const [hora, minuto] = turno.data().hora.split(':');
         fechaTurno.setHours(parseInt(hora), parseInt(minuto), 0, 0);
 
@@ -303,7 +334,8 @@ class GestorTurnos {
         }
 
         // Verificar que sea con al menos 2 horas de anticipación
-        const fechaTurno = turnoData.fecha.toDate();
+        // ✅ Parsear fecha (compatible con strings y Timestamps)
+        const fechaTurno = parseFechaFirestore(turnoData.fecha);
         const [hora, minuto] = turnoData.hora.split(':');
         fechaTurno.setHours(parseInt(hora), parseInt(minuto), 0, 0);
 
@@ -314,8 +346,12 @@ class GestorTurnos {
             throw new Error('Solo puedes modificar turnos con al menos 2 horas de anticipación');
         }
 
+        // ✅ Convertir nueva fecha a string
+        const nuevaFechaString = nuevaFecha instanceof Date
+            ? nuevaFecha.toISOString().split('T')[0]
+            : String(nuevaFecha).split('T')[0];
+
         // Verificar que la nueva fecha sea futura
-        const nuevaFechaTimestamp = firebase.firestore.Timestamp.fromDate(nuevaFecha);
         if (nuevaFecha < new Date()) {
             throw new Error('La nueva fecha debe ser futura');
         }
@@ -323,10 +359,10 @@ class GestorTurnos {
         // Usar transacción para verificar disponibilidad del nuevo horario
         try {
             await db.runTransaction(async (transaction) => {
-                // Verificar que el nuevo horario esté disponible
+                // Verificar que el nuevo horario esté disponible (usando STRING)
                 const querySnapshot = await transaction.get(
                     db.collection('turnos')
-                        .where('fecha', '==', nuevaFechaTimestamp)
+                        .where('fecha', '==', nuevaFechaString)
                         .where('hora', '==', nuevaHora)
                         .where('estado', '==', 'confirmado')
                 );
@@ -338,17 +374,17 @@ class GestorTurnos {
                     throw new Error('HORARIO_NO_DISPONIBLE');
                 }
 
-                // Guardar datos anteriores para el historial
+                // Guardar datos anteriores para el historial (SOLO PRIMITIVOS)
                 const datosAnteriores = {
                     previousDate: turnoData.fecha,
                     previousTime: turnoData.hora,
-                    modifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     modificationsCount: modificacionesCount + 1
+                    // ❌ REMOVIDO: modifiedAt (causa error en transacciones)
                 };
 
-                // Actualizar el turno
+                // Actualizar el turno (usando STRING para fecha)
                 transaction.update(turnoRef, {
-                    fecha: nuevaFechaTimestamp,
+                    fecha: nuevaFechaString,  // ✅ String: "2025-10-31"
                     hora: nuevaHora,
                     ...datosAnteriores
                 });
@@ -788,7 +824,8 @@ async function abrirModalModificar(turnoId, servicioId) {
 
         const turnoData = turnoDoc.data();
         const servicio = Utils.getServicio(servicioId);
-        const fechaActual = turnoData.fecha.toDate();
+        // ✅ Parsear fecha (compatible con strings y Timestamps)
+        const fechaActual = parseFechaFirestore(turnoData.fecha);
         const horaActual = turnoData.hora;
 
         // Verificar límite de modificaciones
@@ -957,7 +994,7 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
     if (!user) return [];
 
     try {
-        const ahora = firebase.firestore.Timestamp.fromDate(new Date());
+        const ahora = new Date();
 
         // Construir query base
         let query = db.collection('turnos')
@@ -971,8 +1008,9 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
             } else if (filters.period === '3months') {
                 fechaInicio.setMonth(fechaInicio.getMonth() - 3);
             }
-            const timestampInicio = firebase.firestore.Timestamp.fromDate(fechaInicio);
-            query = query.where('fecha', '>=', timestampInicio);
+            // ✅ Usar string en lugar de Timestamp
+            const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
+            query = query.where('fecha', '>=', fechaInicioStr);
         }
 
         const snapshot = await query.get();
@@ -982,11 +1020,12 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
             .map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                fecha: doc.data().fecha.toDate()
+                // ✅ Parsear fecha (compatible con strings y Timestamps)
+                fecha: parseFechaFirestore(doc.data().fecha)
             }))
             .filter(turno => {
                 // Excluir turnos confirmados en el futuro (esos son "activos")
-                if (turno.estado === 'confirmado' && turno.fecha >= ahora.toDate()) {
+                if (turno.estado === 'confirmado' && turno.fecha >= ahora) {
                     return false;
                 }
 
@@ -1097,7 +1136,8 @@ async function cargarHistorial() {
 
                 // Agregar fecha de cancelación si existe
                 if (turno.canceladoAt) {
-                    const fechaCancelacion = turno.canceladoAt.toDate();
+                    // ✅ Parsear fecha (compatible con strings y Timestamps)
+                    const fechaCancelacion = parseFechaFirestore(turno.canceladoAt);
                     estadoTexto += ` (${Utils.formatearFechaCorta(fechaCancelacion)})`;
                 }
             } else {
@@ -1165,7 +1205,8 @@ async function cargarPerfil() {
         const turnos = turnosSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
-            fecha: doc.data().fecha.toDate()
+            // ✅ Parsear fecha (compatible con strings y Timestamps)
+            fecha: parseFechaFirestore(doc.data().fecha)
         }));
 
         const ahora = new Date();
@@ -1182,7 +1223,10 @@ async function cargarPerfil() {
             .substring(0, 2);
 
         // Formatear fecha de registro
-        const fechaRegistro = userData?.fechaRegistro?.toDate() || new Date();
+        // ✅ Parsear fecha (compatible con strings y Timestamps)
+        const fechaRegistro = userData?.fechaRegistro
+            ? parseFechaFirestore(userData.fechaRegistro)
+            : new Date();
         const miembroDesde = fechaRegistro.toLocaleDateString('es-AR', {
             year: 'numeric',
             month: 'long',
