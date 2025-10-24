@@ -469,6 +469,7 @@ class GestorTurnos {
 
         // Actualizar el turno con strings
         const datosActualizacion = {
+            estado: 'confirmado',     // ← Explícito para las reglas de Firestore
             fecha: nuevaFechaString,  // ← String
             hora: nuevaHoraString,    // ← String
             previousDate: turnoData.fecha,
@@ -476,6 +477,15 @@ class GestorTurnos {
             modificationsCount: modificacionesCount + 1,
             modifiedAt: firebase.firestore.Timestamp.now()
         };
+
+        console.log('📝 Datos que se van a actualizar:', datosActualizacion);
+        console.log('📝 Tipos de datos:', {
+            estado: typeof datosActualizacion.estado,
+            fecha: typeof datosActualizacion.fecha,
+            hora: typeof datosActualizacion.hora,
+            modificationsCount: typeof datosActualizacion.modificationsCount,
+            modifiedAt: datosActualizacion.modifiedAt?.constructor?.name
+        });
 
         await turnoRef.update(datosActualizacion);
 
