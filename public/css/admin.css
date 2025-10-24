@@ -36,7 +36,7 @@
     gap: 0.5rem;
     margin: 2rem 0;
     flex-wrap: wrap;
-    background: white;
+    background: var(--bg-white);
     padding: 1rem;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -136,7 +136,7 @@
 }
 
 .metric-card {
-    background: white;
+    background: var(--bg-white);
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -168,7 +168,7 @@
    ===================================================== */
 
 .dashboard-section {
-    background: white;
+    background: var(--bg-white);
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -374,7 +374,7 @@
     font-weight: 700;
     color: var(--success-color);
     padding: 0.5rem 1rem;
-    background: white;
+    background: var(--bg-white);
     border-radius: 20px;
 }
 
@@ -407,7 +407,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    background: white;
+    background: var(--bg-white);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     border-left: 4px solid var(--primary-color);
@@ -566,7 +566,7 @@
    ===================================================== */
 
 .config-section {
-    background: white;
+    background: var(--bg-white);
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -670,10 +670,11 @@
 
 .export-form select {
     padding: 0.75rem;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: 1rem;
-    background: white;
+    background: var(--bg-white);
+    color: var(--text-dark);
     cursor: pointer;
 }
 
