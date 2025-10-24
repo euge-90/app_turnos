@@ -368,13 +368,17 @@ class GestorTurnos {
             throw new Error('No puedes cancelar este turno. Los turnos solo pueden cancelarse con al menos 1 hora de anticipación. Para cancelaciones de último momento, contacta a la peluquería.');
         }
 
-        await turnoRef.update({
+        const datosActualizacion = {
             estado: 'cancelado',
-            canceladoAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+            canceladoAt: firebase.firestore.Timestamp.now()
+        };
+
+        await turnoRef.update(datosActualizacion);
 
         // V2: Notificar lista de espera para este horario
-        await notificarListaEsperaCuandoCancelan(fechaTurno, turno.data().hora);
+        // NOTA: Deshabilitado porque requiere Cloud Functions para funcionar correctamente
+        // Los usuarios en lista de espera deben revisar manualmente la disponibilidad
+        // await notificarListaEsperaCuandoCancelan(fechaTurno, turno.data().hora);
 
         // Limpiar cache
         this.cache.clear();
@@ -384,6 +388,26 @@ class GestorTurnos {
     async modificarTurno(turnoId, nuevaFecha, nuevaHora) {
         const user = auth.currentUser;
         if (!user) throw new Error('Debes iniciar sesión');
+
+        // Normalizar nueva fecha a string
+        let nuevaFechaString;
+        if (nuevaFecha instanceof Date) {
+            nuevaFechaString = nuevaFecha.toISOString().split('T')[0];
+        } else if (typeof nuevaFecha === 'string') {
+            nuevaFechaString = nuevaFecha.split('T')[0];
+        } else {
+            nuevaFechaString = String(nuevaFecha).split('T')[0];
+        }
+
+        // Normalizar nueva hora a string
+        const nuevaHoraString = String(nuevaHora);
+
+        console.log('🔄 Modificando turno:', {
+            fechaOriginal: nuevaFecha,
+            fechaNormalizada: nuevaFechaString,
+            horaOriginal: nuevaHora,
+            horaNormalizada: nuevaHoraString
+        });
 
         const turnoRef = db.collection('turnos').doc(turnoId);
         const turno = await turnoRef.get();
@@ -421,62 +445,42 @@ class GestorTurnos {
             throw new Error('Solo puedes modificar turnos con al menos 2 horas de anticipación');
         }
 
-        // ✅ Convertir nueva fecha a Timestamp
-        const nuevaFechaNormalizada = parseFechaFirestore(nuevaFecha);
-        if (!nuevaFechaNormalizada) {
-            throw new Error('Fecha inválida');
-        }
-        nuevaFechaNormalizada.setHours(0, 0, 0, 0);
-        const nuevaFechaTimestamp = firebase.firestore.Timestamp.fromDate(nuevaFechaNormalizada);
-
-        // Verificar que la nueva fecha sea futura
-        if (nuevaFechaNormalizada < new Date()) {
+        // Verificar que la nueva fecha sea futura (parsear string a Date para validación)
+        const nuevaFechaValidacion = new Date(nuevaFechaString);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        if (nuevaFechaValidacion < hoy) {
             throw new Error('La nueva fecha debe ser futura');
         }
 
-        // Usar transacción para verificar disponibilidad del nuevo horario
-        try {
-            await db.runTransaction(async (transaction) => {
-                // Verificar que el nuevo horario esté disponible (usando Timestamp)
-                const querySnapshot = await transaction.get(
-                    db.collection('turnos')
-                        .where('fecha', '==', nuevaFechaTimestamp)
-                        .where('hora', '==', nuevaHora)
-                        .where('estado', '==', 'confirmado')
-                );
+        // Verificar disponibilidad del nuevo horario FUERA de la transacción
+        const turnosExistentes = await db.collection('turnos')
+            .where('fecha', '==', nuevaFechaString)  // ← String, NO Timestamp
+            .where('hora', '==', nuevaHoraString)
+            .where('estado', '==', 'confirmado')
+            .get();
 
-                // Filtrar para excluir el turno actual (permite modificar sin conflicto consigo mismo)
-                const conflictos = querySnapshot.docs.filter(doc => doc.id !== turnoId);
+        // Filtrar para excluir el turno actual (permite modificar sin conflicto consigo mismo)
+        const conflictos = turnosExistentes.docs.filter(doc => doc.id !== turnoId);
 
-                if (conflictos.length > 0) {
-                    throw new Error('HORARIO_NO_DISPONIBLE');
-                }
-
-                // Guardar datos anteriores para el historial (SOLO PRIMITIVOS)
-                const datosAnteriores = {
-                    previousDate: turnoData.fecha,
-                    previousTime: turnoData.hora,
-                    modificationsCount: modificacionesCount + 1,
-                    modifiedAt: firebase.firestore.Timestamp.now()  // ✅ Timestamp de modificación
-                };
-
-                // Actualizar el turno (usando Timestamp para fecha)
-                transaction.update(turnoRef, {
-                    fecha: nuevaFechaTimestamp,  // ✅ Timestamp
-                    hora: nuevaHora,
-                    ...datosAnteriores
-                });
-            });
-
-            // Limpiar cache tras éxito
-            this.cache.clear();
-
-        } catch (error) {
-            if (error.message === 'HORARIO_NO_DISPONIBLE') {
-                throw new Error('El nuevo horario no está disponible. Por favor selecciona otro.');
-            }
-            throw error;
+        if (conflictos.length > 0) {
+            throw new Error('El nuevo horario no está disponible. Por favor selecciona otro.');
         }
+
+        // Actualizar el turno con strings
+        const datosActualizacion = {
+            fecha: nuevaFechaString,  // ← String
+            hora: nuevaHoraString,    // ← String
+            previousDate: turnoData.fecha,
+            previousTime: turnoData.hora,
+            modificationsCount: modificacionesCount + 1,
+            modifiedAt: firebase.firestore.Timestamp.now()
+        };
+
+        await turnoRef.update(datosActualizacion);
+
+        // Limpiar cache tras éxito
+        this.cache.clear();
     }
 
     // Obtener turnos del usuario actual
