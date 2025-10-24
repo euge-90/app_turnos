@@ -132,15 +132,18 @@ class GestorTurnos {
         }
 
         try {
-            // ✅ Calcular fechas como strings "2025-10-01" y "2025-10-31"
+            // ✅ Calcular fechas como Timestamps
             const inicio = new Date(year, month, 1);
+            inicio.setHours(0, 0, 0, 0);
             const fin = new Date(year, month + 1, 0);
-            const fechaInicioStr = inicio.toISOString().split('T')[0];
-            const fechaFinStr = fin.toISOString().split('T')[0];
+            fin.setHours(23, 59, 59, 999);
+
+            const fechaInicioTimestamp = firebase.firestore.Timestamp.fromDate(inicio);
+            const fechaFinTimestamp = firebase.firestore.Timestamp.fromDate(fin);
 
             const snapshot = await db.collection('turnos')
-                .where('fecha', '>=', fechaInicioStr)
-                .where('fecha', '<=', fechaFinStr)
+                .where('fecha', '>=', fechaInicioTimestamp)
+                .where('fecha', '<=', fechaFinTimestamp)
                 .where('estado', '==', 'confirmado')
                 .get();
 
@@ -169,11 +172,16 @@ class GestorTurnos {
 
     // Obtener horarios disponibles para una fecha
     async obtenerHorariosDisponibles(fecha) {
-        // ✅ Convertir fecha a string
-        const fechaString = fecha instanceof Date
-            ? fecha.toISOString().split('T')[0]
-            : String(fecha).split('T')[0];
+        // ✅ Normalizar fecha a Date y crear Timestamp
+        const fechaNormalizada = parseFechaFirestore(fecha);
+        if (!fechaNormalizada) {
+            console.error('Fecha inválida en obtenerHorariosDisponibles:', fecha);
+            return [];
+        }
+        fechaNormalizada.setHours(0, 0, 0, 0);
 
+        const fechaTimestamp = firebase.firestore.Timestamp.fromDate(fechaNormalizada);
+        const fechaString = fechaNormalizada.toISOString().split('T')[0];
         const cacheKey = fechaString;
 
         // Verificar cache
@@ -185,9 +193,9 @@ class GestorTurnos {
         }
 
         try {
-            // Obtener turnos ocupados de Firebase usando string
+            // Obtener turnos ocupados de Firebase usando Timestamp
             const snapshot = await db.collection('turnos')
-                .where('fecha', '==', fechaString)
+                .where('fecha', '==', fechaTimestamp)
                 .where('estado', '==', 'confirmado')
                 .get();
 
@@ -413,23 +421,26 @@ class GestorTurnos {
             throw new Error('Solo puedes modificar turnos con al menos 2 horas de anticipación');
         }
 
-        // ✅ Convertir nueva fecha a string
-        const nuevaFechaString = nuevaFecha instanceof Date
-            ? nuevaFecha.toISOString().split('T')[0]
-            : String(nuevaFecha).split('T')[0];
+        // ✅ Convertir nueva fecha a Timestamp
+        const nuevaFechaNormalizada = parseFechaFirestore(nuevaFecha);
+        if (!nuevaFechaNormalizada) {
+            throw new Error('Fecha inválida');
+        }
+        nuevaFechaNormalizada.setHours(0, 0, 0, 0);
+        const nuevaFechaTimestamp = firebase.firestore.Timestamp.fromDate(nuevaFechaNormalizada);
 
         // Verificar que la nueva fecha sea futura
-        if (nuevaFecha < new Date()) {
+        if (nuevaFechaNormalizada < new Date()) {
             throw new Error('La nueva fecha debe ser futura');
         }
 
         // Usar transacción para verificar disponibilidad del nuevo horario
         try {
             await db.runTransaction(async (transaction) => {
-                // Verificar que el nuevo horario esté disponible (usando STRING)
+                // Verificar que el nuevo horario esté disponible (usando Timestamp)
                 const querySnapshot = await transaction.get(
                     db.collection('turnos')
-                        .where('fecha', '==', nuevaFechaString)
+                        .where('fecha', '==', nuevaFechaTimestamp)
                         .where('hora', '==', nuevaHora)
                         .where('estado', '==', 'confirmado')
                 );
@@ -449,9 +460,9 @@ class GestorTurnos {
                     modifiedAt: firebase.firestore.Timestamp.now()  // ✅ Timestamp de modificación
                 };
 
-                // Actualizar el turno (usando STRING para fecha)
+                // Actualizar el turno (usando Timestamp para fecha)
                 transaction.update(turnoRef, {
-                    fecha: nuevaFechaString,  // ✅ String: "2025-10-31"
+                    fecha: nuevaFechaTimestamp,  // ✅ Timestamp
                     hora: nuevaHora,
                     ...datosAnteriores
                 });
@@ -1095,9 +1106,10 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
             } else if (filters.period === '3months') {
                 fechaInicio.setMonth(fechaInicio.getMonth() - 3);
             }
-            // ✅ Usar string en lugar de Timestamp
-            const fechaInicioStr = fechaInicio.toISOString().split('T')[0];
-            query = query.where('fecha', '>=', fechaInicioStr);
+            // ✅ Convertir a Timestamp para comparar correctamente con Firestore
+            fechaInicio.setHours(0, 0, 0, 0);
+            const fechaInicioTimestamp = firebase.firestore.Timestamp.fromDate(fechaInicio);
+            query = query.where('fecha', '>=', fechaInicioTimestamp);
         }
 
         const snapshot = await query.get();
