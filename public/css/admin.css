@@ -771,3 +771,119 @@
         width: 80%;
     }
 }
+
+/* =====================================================
+   MODO OSCURO
+   ===================================================== */
+
+body.dark-mode {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+/* Tabs */
+body.dark-mode .admin-tabs {
+    background: #2d2d2d;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .admin-tab-btn {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .admin-tab-btn:hover {
+    background: #4a4a4a;
+}
+
+body.dark-mode .admin-tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Cards */
+body.dark-mode .stat-card,
+body.dark-mode .dashboard-card,
+body.dark-mode .admin-section,
+body.dark-mode .agenda-item,
+body.dark-mode .service-item,
+body.dark-mode .blocked-date-item {
+    background: #2d2d2d;
+    border-color: #404040;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .stat-card h3,
+body.dark-mode .dashboard-card h3,
+body.dark-mode .admin-section h2,
+body.dark-mode .admin-section h3 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .stat-number {
+    color: var(--primary-color);
+}
+
+/* Forms */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="email"],
+body.dark-mode input[type="number"],
+body.dark-mode input[type="date"],
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #404040;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #888;
+}
+
+/* Gráfico */
+body.dark-mode .grafico-simple {
+    background: #2d2d2d;
+    border-color: #404040;
+}
+
+body.dark-mode .barra-label {
+    color: #b0b0b0;
+}
+
+body.dark-mode .barra-fill {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+}
+
+/* Top servicios */
+body.dark-mode .top-servicio-item,
+body.dark-mode .horario-item,
+body.dark-mode .cliente-item {
+    background: #3a3a3a;
+    border-left-color: var(--primary-color);
+}
+
+body.dark-mode .servicio-nombre,
+body.dark-mode .horario-hora {
+    color: #e0e0e0;
+}
+
+body.dark-mode .servicio-cantidad,
+body.dark-mode .horario-cantidad,
+body.dark-mode .cliente-cantidad {
+    color: var(--primary-color);
+}
+
+/* Proximo turno */
+body.dark-mode .proximo-turno-info p {
+    color: #b0b0b0;
+}
+
+body.dark-mode .proximo-turno-info strong {
+    color: #e0e0e0;
+}
+
+/* Loading */
+body.dark-mode .loading {
+    color: #b0b0b0;
+}
