@@ -966,6 +966,15 @@ async function eliminarServicioUI(servicioId) {
     }
 }
 
+// ========================================
+// INICIALIZAR MODO OSCURO (ejecutar inmediatamente, antes de DOMContentLoaded)
+// ========================================
+// Aplicar modo oscuro antes de que la página se renderice para evitar flash
+const darkModeStored = localStorage.getItem("darkMode") === "true";
+if (darkModeStored) {
+    document.body.classList.add("dark-mode");
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar que estamos en admin.html
@@ -1201,11 +1210,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================
     // MODO OSCURO (V2)
     // ========================================
-    const darkMode = localStorage.getItem("darkMode") === "true";
-    if (darkMode) {
-        document.body.classList.add("dark-mode");
-        updateDarkModeIconAdmin();
-    }
+    // Actualizar ícono al cargar (la clase ya fue aplicada antes del DOMContentLoaded)
+    updateDarkModeIconAdmin();
 
     // Toggle de modo oscuro
     const darkModeToggle = document.getElementById("darkModeToggle");
@@ -1215,6 +1221,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const isDark = document.body.classList.contains("dark-mode");
             localStorage.setItem("darkMode", isDark);
             updateDarkModeIconAdmin();
+            if (typeof Utils !== "undefined" && Utils.toastInfo) {
+                Utils.toastInfo(isDark ? "🌙 Modo oscuro activado" : "☀️ Modo claro activado", 2000);
+            }
         });
     }
 });
