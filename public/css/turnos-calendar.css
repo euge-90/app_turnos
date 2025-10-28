@@ -2719,3 +2719,70 @@ body.dark-mode .horario-btn.selected {
     box-shadow: 0 4px 20px rgba(33, 150, 243, 0.6) !important;
     transform: scale(1.05);
 }
+
+/* ============================================
+   FIX: HORARIOS SUGERIDOS - MODO OSCURO
+   ============================================ */
+
+/* Contenedor de horarios sugeridos - Fondo dorado visible */
+:root.dark-mode .horarios-sugeridos,
+body.dark-mode .horarios-sugeridos {
+    background: linear-gradient(135deg, #F57C00 0%, #FF9800 100%) !important;
+    border: 2px solid #FFB74D !important;
+    box-shadow: 0 4px 16px rgba(255, 152, 0, 0.4) !important;
+}
+
+/* Horario sugerido NO seleccionado - NARANJA/DORADO BRILLANTE para destacar */
+:root.dark-mode .horario-sugerido,
+body.dark-mode .horario-sugerido {
+    background: linear-gradient(135deg, #FB8C00 0%, #FFA726 100%) !important;
+    border: 3px solid #FFB74D !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(255, 167, 38, 0.5) !important;
+    font-weight: 700 !important;
+}
+
+/* Texto principal del horario sugerido */
+:root.dark-mode .horario-sugerido .hora-principal,
+body.dark-mode .horario-sugerido .hora-principal {
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Tipo de horario (Mañana, Tarde, Noche) */
+:root.dark-mode .horario-sugerido .hora-tipo,
+body.dark-mode .horario-sugerido .hora-tipo {
+    color: #FFF3E0 !important;
+    font-weight: 600 !important;
+    opacity: 0.95;
+}
+
+/* Hover sobre horario sugerido */
+:root.dark-mode .horario-sugerido:hover,
+body.dark-mode .horario-sugerido:hover {
+    background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%) !important;
+    border-color: #FFCC80 !important;
+    box-shadow: 0 6px 20px rgba(255, 167, 38, 0.7) !important;
+    transform: translateY(-4px) scale(1.03) !important;
+}
+
+/* Horario sugerido SELECCIONADO - AZUL BRILLANTE */
+:root.dark-mode .horario-sugerido.selected,
+body.dark-mode .horario-sugerido.selected {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    border: 3px solid #2196F3 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 6px 24px rgba(33, 150, 243, 0.7) !important;
+    transform: scale(1.08) !important;
+}
+
+:root.dark-mode .horario-sugerido.selected .hora-principal,
+body.dark-mode .horario-sugerido.selected .hora-principal {
+    color: #FFFFFF !important;
+}
+
+:root.dark-mode .horario-sugerido.selected .hora-tipo,
+body.dark-mode .horario-sugerido.selected .hora-tipo {
+    color: #E3F2FD !important;
+}
