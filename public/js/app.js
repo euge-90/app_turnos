@@ -1149,11 +1149,16 @@ async function obtenerHistorialTurnos(filters = {
 
         // Filtrar TODO en JavaScript
         return snapshot.docs
-            .map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                fecha: parseFechaFirestore(doc.data().fecha)
-            }))
+            .map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    fecha: parseFechaFirestore(data.fecha),
+                    // Parsear fecha de cancelación si existe
+                    canceladoAt: data.canceladoAt ? parseFechaFirestore(data.canceladoAt) : null
+                };
+            })
             .filter(turno => {
                 // 1. DEFINIR QUÉ ES "HISTORIAL"
                 // Historial incluye:
@@ -1179,10 +1184,19 @@ async function obtenerHistorialTurnos(filters = {
                 }
 
                 // 3. APLICAR FILTRO DE PERÍODO
+                // FIX: Para cancelados usar canceladoAt, para completados usar fecha
                 if (fechaInicio && fechaFin) {
-                    // Para cancelados: incluir si la fecha está en el rango
-                    // Para completados: incluir si la fecha está en el rango (ya sabemos que es pasada)
-                    if (turno.fecha < fechaInicio || turno.fecha > fechaFin) {
+                    let fechaComparar;
+
+                    if (esCancelado && turno.canceladoAt) {
+                        // Para cancelados: filtrar por fecha de cancelación
+                        fechaComparar = turno.canceladoAt;
+                    } else {
+                        // Para completados (o cancelados sin canceladoAt): filtrar por fecha del turno
+                        fechaComparar = turno.fecha;
+                    }
+
+                    if (fechaComparar < fechaInicio || fechaComparar > fechaFin) {
                         return false;
                     }
                 }
@@ -1200,7 +1214,12 @@ async function obtenerHistorialTurnos(filters = {
 
                 return true;
             })
-            .sort((a, b) => b.fecha - a.fecha); // Ordenar por fecha descendente
+            .sort((a, b) => {
+                // Ordenar por fecha relevante: canceladoAt para cancelados, fecha para completados
+                const fechaA = a.estado === 'cancelado' && a.canceladoAt ? a.canceladoAt : a.fecha;
+                const fechaB = b.estado === 'cancelado' && b.canceladoAt ? b.canceladoAt : b.fecha;
+                return fechaB - fechaA; // Descendente (más reciente primero)
+            })
 
     } catch (error) {
         console.error('Error al obtener historial:', error);
