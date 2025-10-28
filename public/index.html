@@ -107,25 +107,54 @@
 
                 <!-- Filtros -->
                 <div class="historial-filters">
-                    <div class="filter-group">
-                        <label for="statusFilter">Estado:</label>
-                        <select id="statusFilter" class="filter-select">
-                            <option value="all">Todos</option>
-                            <option value="completed">✅ Completados</option>
-                            <option value="cancelled">❌ Cancelados</option>
-                        </select>
+                    <!-- Primera fila de filtros -->
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="statusFilter">Estado:</label>
+                            <select id="statusFilter" class="filter-select">
+                                <option value="all">Todos</option>
+                                <option value="completed">✅ Completados</option>
+                                <option value="cancelled">❌ Cancelados</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="periodFilter">Período:</label>
+                            <select id="periodFilter" class="filter-select">
+                                <option value="month">Último mes</option>
+                                <option value="3months">Últimos 3 meses</option>
+                                <option value="all">Todo el historial</option>
+                                <option value="custom">📅 Personalizado</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="servicioFilter">Servicio:</label>
+                            <select id="servicioFilter" class="filter-select">
+                                <option value="all">Todos los servicios</option>
+                                <!-- Se llenarán dinámicamente desde CONFIG.servicios -->
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="periodFilter">Período:</label>
-                        <select id="periodFilter" class="filter-select">
-                            <option value="month">Último mes</option>
-                            <option value="3months">Últimos 3 meses</option>
-                            <option value="all">Todo el historial</option>
-                        </select>
+                    <!-- Segunda fila: Rango de fechas personalizado (oculto por defecto) -->
+                    <div id="customDateRange" class="filter-row" style="display: none;">
+                        <div class="filter-group">
+                            <label for="fechaDesde">Desde:</label>
+                            <input type="date" id="fechaDesde" class="filter-select">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="fechaHasta">Hasta:</label>
+                            <input type="date" id="fechaHasta" class="filter-select">
+                        </div>
                     </div>
 
-                    <button id="applyFiltersBtn" class="btn-primary">Aplicar Filtros</button>
+                    <!-- Botones -->
+                    <div class="filter-actions">
+                        <button id="applyFiltersBtn" class="btn-primary">🔍 Aplicar Filtros</button>
+                        <button id="clearFiltersBtn" class="btn-secondary">🔄 Limpiar</button>
+                    </div>
                 </div>
 
                 <!-- Estadísticas -->
@@ -173,9 +202,9 @@
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     <!-- App Scripts -->
-    <script src="js/firebase-config.js?v=0fc8869"></script>
-    <script src="js/auth.js?v=0fc8869"></script>
-    <script src="js/app.js?v=0fc8869"></script>
+    <script src="js/firebase-config.js?v=tc-v2-41"></script>
+    <script src="js/auth.js?v=tc-v2-41"></script>
+    <script src="js/app.js?v=tc-v2-41"></script>
 
     <!-- PWA Service Worker Registration -->
     <script>

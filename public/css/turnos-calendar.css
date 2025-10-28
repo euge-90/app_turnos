@@ -1914,3 +1914,66 @@ input.is-valid:focus {
         max-width: 700px;
     }
 }
+
+/* ========================================
+   TC-V2-41: Estilos para filtros avanzados
+   ======================================== */
+
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.filter-actions .btn-primary,
+.filter-actions .btn-secondary {
+    flex: 0 1 auto;
+    min-width: 150px;
+}
+
+#customDateRange {
+    padding: 1rem;
+    background-color: var(--background-light);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* Modo oscuro para rango personalizado */
+:root.dark-mode #customDateRange {
+    background-color: var(--card-bg-dark);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Inputs de fecha */
+input[type="date"].filter-select {
+    padding: 0.5rem;
+    font-family: inherit;
+}
+
+/* Responsive para filtros */
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+    }
+
+    .filter-actions .btn-primary,
+    .filter-actions .btn-secondary {
+        width: 100%;
+    }
+}

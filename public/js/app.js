@@ -1101,7 +1101,13 @@ async function cargarServiciosDesdeFirestore() {
 // ========================================
 
 // Obtener historial de turnos con filtros
-async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }) {
+async function obtenerHistorialTurnos(filters = {
+    status: 'all',
+    period: 'all',
+    servicio: 'all',
+    fechaDesde: null,
+    fechaHasta: null
+}) {
     const user = auth.currentUser;
     if (!user) return [];
 
@@ -1112,8 +1118,22 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
         let query = db.collection('turnos')
             .where('usuarioId', '==', user.uid);
 
-        // Aplicar filtro de período
-        if (filters.period !== 'all') {
+        // TC-V2-41: Aplicar filtro de rango de fechas personalizado
+        if (filters.period === 'custom' && filters.fechaDesde && filters.fechaHasta) {
+            const desde = new Date(filters.fechaDesde);
+            desde.setHours(0, 0, 0, 0);
+            const hasta = new Date(filters.fechaHasta);
+            hasta.setHours(23, 59, 59, 999);
+
+            const desdeTimestamp = firebase.firestore.Timestamp.fromDate(desde);
+            const hastaTimestamp = firebase.firestore.Timestamp.fromDate(hasta);
+
+            query = query
+                .where('fecha', '>=', desdeTimestamp)
+                .where('fecha', '<=', hastaTimestamp);
+        }
+        // Aplicar filtro de período predefinido (si no es personalizado)
+        else if (filters.period !== 'all' && filters.period !== 'custom') {
             const fechaInicio = new Date();
             if (filters.period === 'month') {
                 fechaInicio.setMonth(fechaInicio.getMonth() - 1);
@@ -1128,7 +1148,7 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
 
         const snapshot = await query.get();
 
-        // Filtrar en JavaScript para excluir turnos activos y aplicar filtro de estado
+        // Filtrar en JavaScript para excluir turnos activos y aplicar filtros adicionales
         return snapshot.docs
             .map(doc => ({
                 id: doc.id,
@@ -1158,6 +1178,15 @@ async function obtenerHistorialTurnos(filters = { status: 'all', period: 'all' }
                     }
                 }
 
+                // TC-V2-41: Aplicar filtro por servicio (validación defensiva)
+                if (filters.servicio !== 'all') {
+                    // Verificar si servicio es objeto o string
+                    const servicioId = typeof turno.servicio === 'object' ? turno.servicio.id : turno.servicio;
+                    if (servicioId !== filters.servicio) {
+                        return false;
+                    }
+                }
+
                 return true;
             })
             .sort((a, b) => b.fecha - a.fecha); // Ordenar por fecha descendente
@@ -1176,6 +1205,9 @@ async function cargarHistorial() {
     // Obtener filtros actuales
     const statusFilter = document.getElementById('statusFilter').value;
     const periodFilter = document.getElementById('periodFilter').value;
+    const servicioFilter = document.getElementById('servicioFilter').value;
+    const fechaDesde = document.getElementById('fechaDesde').value;
+    const fechaHasta = document.getElementById('fechaHasta').value;
 
     // Mostrar loading
     historialList.innerHTML = '<div class="loading">Cargando historial...</div>';
@@ -1185,7 +1217,10 @@ async function cargarHistorial() {
         // Obtener turnos
         const turnos = await obtenerHistorialTurnos({
             status: statusFilter,
-            period: periodFilter
+            period: periodFilter,
+            servicio: servicioFilter,
+            fechaDesde: fechaDesde,
+            fechaHasta: fechaHasta
         });
 
         // Renderizar lista - Verificar si hay turnos PRIMERO
@@ -1199,12 +1234,12 @@ async function cargarHistorial() {
                     <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
                     <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">No hay turnos en tu historial</h3>
                     <p style="color: var(--text-light); margin-bottom: 1.5rem;">
-                        ${statusFilter !== 'all' || periodFilter !== 'all'
+                        ${statusFilter !== 'all' || periodFilter !== 'all' || servicioFilter !== 'all'
                             ? 'Intenta ajustar los filtros para ver más resultados'
                             : 'Tus turnos completados y cancelados aparecerán aquí'}
                     </p>
-                    ${statusFilter !== 'all' || periodFilter !== 'all'
-                        ? '<button class="btn-secondary" onclick="document.getElementById(\'statusFilter\').value=\'all\'; document.getElementById(\'periodFilter\').value=\'all\'; cargarHistorial();">Limpiar Filtros</button>'
+                    ${statusFilter !== 'all' || periodFilter !== 'all' || servicioFilter !== 'all'
+                        ? '<button class="btn-secondary" onclick="limpiarFiltros();">Limpiar Filtros</button>'
                         : '<button class="btn-primary" onclick="document.querySelectorAll(\'.tab-btn\')[0].click();">Reservar un Turno</button>'}
                 </div>
             `;
@@ -1292,6 +1327,65 @@ async function cargarHistorial() {
         console.error('Error al cargar historial:', error);
         historialList.innerHTML = '<p style="text-align: center; color: #f44336;">Error al cargar el historial</p>';
     }
+}
+
+// ========================================
+// TC-V2-41: Funciones de filtros avanzados
+// ========================================
+
+// Cargar servicios en el dropdown de filtros
+function cargarServiciosFiltro() {
+    const servicioFilter = document.getElementById('servicioFilter');
+    if (!servicioFilter) return;
+
+    // Limpiar opciones excepto "Todos"
+    servicioFilter.innerHTML = '<option value="all">Todos los servicios</option>';
+
+    // Agregar servicios desde CONFIG
+    CONFIG.servicios.forEach(servicio => {
+        const option = document.createElement('option');
+        option.value = servicio.id;
+        option.textContent = `${servicio.nombre} - $${servicio.precio.toLocaleString('es-AR')}`;
+        servicioFilter.appendChild(option);
+    });
+}
+
+// Mostrar/ocultar rango de fechas personalizado
+function toggleCustomDateRange() {
+    const periodFilter = document.getElementById('periodFilter');
+    const customDateRange = document.getElementById('customDateRange');
+
+    if (periodFilter.value === 'custom') {
+        customDateRange.style.display = 'flex';
+
+        // Establecer fecha máxima como hoy
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fechaDesde').max = hoy;
+        document.getElementById('fechaHasta').max = hoy;
+
+        // Establecer valores por defecto (último mes)
+        if (!document.getElementById('fechaDesde').value) {
+            const haceMes = new Date();
+            haceMes.setMonth(haceMes.getMonth() - 1);
+            document.getElementById('fechaDesde').value = haceMes.toISOString().split('T')[0];
+            document.getElementById('fechaHasta').value = hoy;
+        }
+    } else {
+        customDateRange.style.display = 'none';
+    }
+}
+
+// Limpiar todos los filtros
+function limpiarFiltros() {
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('periodFilter').value = 'all';
+    document.getElementById('servicioFilter').value = 'all';
+    document.getElementById('fechaDesde').value = '';
+    document.getElementById('fechaHasta').value = '';
+    document.getElementById('customDateRange').style.display = 'none';
+
+    Utils.toastInfo('🔄 Filtros limpiados', 2000);
+    cargarHistorial();
 }
 
 // REQ-V2-05: Cargar perfil de usuario
@@ -1862,10 +1956,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     if (applyFiltersBtn) {
         applyFiltersBtn.addEventListener('click', () => {
+            // TC-V2-41: Validar rango de fechas si está activo
+            const periodFilter = document.getElementById('periodFilter').value;
+            if (periodFilter === 'custom') {
+                const desde = document.getElementById('fechaDesde').value;
+                const hasta = document.getElementById('fechaHasta').value;
+
+                if (!desde || !hasta) {
+                    Utils.showError('Error', 'Debes seleccionar ambas fechas para el filtro personalizado');
+                    return;
+                }
+
+                if (new Date(desde) > new Date(hasta)) {
+                    Utils.showError('Error', 'La fecha "Desde" no puede ser posterior a "Hasta"');
+                    return;
+                }
+            }
+
             Utils.toastInfo('🔍 Aplicando filtros...', 2000);
             cargarHistorial();
         });
     }
+
+    // TC-V2-41: Event listener para botón limpiar filtros
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', limpiarFiltros);
+    }
+
+    // TC-V2-41: Event listener para cambio en periodFilter (mostrar/ocultar fechas custom)
+    const periodFilter = document.getElementById('periodFilter');
+    if (periodFilter) {
+        periodFilter.addEventListener('change', toggleCustomDateRange);
+    }
+
+    // TC-V2-41: Cargar servicios en filtro cuando se cargue la página
+    cargarServiciosFiltro();
 
     // Navegación del calendario
     document.getElementById('prevMonthBtn').addEventListener('click', async () => {
