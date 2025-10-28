@@ -763,16 +763,11 @@ const AdminUI = {
 
             stats.forEach(stat => {
                 const item = document.createElement('div');
-                item.style.display = 'flex';
-                item.style.justifyContent = 'space-between';
-                item.style.padding = '0.75rem';
-                item.style.background = '#f5f5f5';
-                item.style.borderRadius = '8px';
-                item.style.marginBottom = '0.5rem';
+                item.className = 'service-stat-item';
 
                 item.innerHTML = `
-                    <span>${stat.servicio.nombre}</span>
-                    <strong style="color: #2196f3;">${stat.cantidad} turnos</strong>
+                    <span class="service-stat-name">${stat.servicio.nombre}</span>
+                    <strong class="service-stat-count">${stat.cantidad} turnos</strong>
                 `;
 
                 container.appendChild(item);
@@ -807,22 +802,15 @@ const AdminUI = {
 
                 const item = document.createElement('div');
                 item.className = 'service-item';
-                item.style.display = 'flex';
-                item.style.justifyContent = 'space-between';
-                item.style.alignItems = 'center';
-                item.style.padding = '1rem';
-                item.style.background = '#f5f5f5';
-                item.style.borderRadius = '8px';
-                item.style.marginBottom = '0.75rem';
 
                 item.innerHTML = `
-                    <div>
-                        <h4 style="margin: 0 0 0.5rem 0;">${servicio.nombre}</h4>
-                        <p style="margin: 0; color: #757575; font-size: 0.9rem;">
+                    <div class="service-info">
+                        <h4 class="service-name">${servicio.nombre}</h4>
+                        <p class="service-details">
                             Duración: ${servicio.duracion} min | Precio: $${servicio.precio.toLocaleString('es-AR')}
                         </p>
                     </div>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div class="service-actions">
                         <button class="btn-primary btn-small" onclick="editarServicioUI('${servicio.id}')">Editar</button>
                         <button class="btn-danger btn-small" onclick="eliminarServicioUI('${servicio.id}')">Eliminar</button>
                     </div>
