@@ -84,31 +84,37 @@
     gap: 1.5rem;
 }
 
+/* FIX: Stat cards con buen contraste en modo light */
 .stat-card {
-    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-    color: white;
+    background: white;
+    color: #333;
     padding: 1.5rem;
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: var(--transition);
 }
 
 .stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    border-color: #2196f3;
 }
 
 .stat-card h3 {
     margin: 0 0 0.5rem 0;
     font-size: 0.95rem;
-    font-weight: 500;
-    opacity: 0.9;
+    font-weight: 600;
+    color: #757575;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stat-number {
     font-size: 2.5rem;
     font-weight: 700;
     margin: 0;
+    color: #2196f3;
 }
 
 /* =====================================================
@@ -789,8 +795,7 @@ body.dark-mode .admin-tab-btn.active {
     color: white;
 }
 
-/* Cards */
-body.dark-mode .stat-card,
+/* Cards - EXCLUIR .stat-card porque tiene estilos especiales con gradiente */
 body.dark-mode .dashboard-card,
 body.dark-mode .admin-section,
 body.dark-mode .agenda-item,
@@ -801,15 +806,10 @@ body.dark-mode .blocked-date-item {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-body.dark-mode .stat-card h3,
 body.dark-mode .dashboard-card h3,
 body.dark-mode .admin-section h2,
 body.dark-mode .admin-section h3 {
     color: #e0e0e0;
-}
-
-body.dark-mode .stat-number {
-    color: var(--primary-color);
 }
 
 /* Forms */
@@ -886,9 +886,26 @@ body.dark-mode .admin-tab-btn.active {
     color: white;
 }
 
+/* FIX: Stat cards con gradiente azul brillante en modo dark */
 body.dark-mode .stat-card {
-    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-    color: white;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    color: white !important;
+    border: 2px solid #42A5F5 !important;
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3) !important;
+}
+
+body.dark-mode .stat-card:hover {
+    box-shadow: 0 6px 24px rgba(33, 150, 243, 0.5) !important;
+    border-color: #64B5F6 !important;
+}
+
+body.dark-mode .stat-card h3 {
+    color: rgba(255, 255, 255, 0.9) !important;
+    opacity: 1 !important;
+}
+
+body.dark-mode .stat-number {
+    color: white !important;
 }
 
 body.dark-mode .barra-valor,
