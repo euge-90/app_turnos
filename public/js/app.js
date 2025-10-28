@@ -1143,7 +1143,13 @@ async function obtenerHistorialTurnos(filters = {
             // ✅ Convertir a Timestamp para comparar correctamente con Firestore
             fechaInicio.setHours(0, 0, 0, 0);
             const fechaInicioTimestamp = firebase.firestore.Timestamp.fromDate(fechaInicio);
-            query = query.where('fecha', '>=', fechaInicioTimestamp);
+
+            // FIX: Agregar límite superior para excluir turnos futuros desde la query
+            const ahoraTimestamp = firebase.firestore.Timestamp.fromDate(ahora);
+
+            query = query
+                .where('fecha', '>=', fechaInicioTimestamp)
+                .where('fecha', '<=', ahoraTimestamp);
         }
 
         const snapshot = await query.get();
