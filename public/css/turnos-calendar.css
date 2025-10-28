@@ -2464,7 +2464,30 @@ body.dark-mode .popup-footer {
    HEADERS DEL CALENDARIO - MODO OSCURO
    ============================================ */
 
-/* Headers de días de la semana */
+/* FIX CRÍTICO: Headers de días de la semana (Dom, Lun, Mar, Mié, Jue, Vie, Sáb) */
+/* Selector correcto: .calendar-day.header */
+:root.dark-mode .calendar-day.header,
+body.dark-mode .calendar-day.header {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    font-size: 1em !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    border: none !important;
+    border-bottom: 3px solid #2196F3 !important;
+    padding: 14px 8px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Fallback para otras posibles clases de headers */
 :root.dark-mode .calendar-header,
 body.dark-mode .calendar-header,
 :root.dark-mode .calendar-weekdays,
