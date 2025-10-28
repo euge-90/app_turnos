@@ -2786,3 +2786,184 @@ body.dark-mode .horario-sugerido.selected .hora-principal {
 body.dark-mode .horario-sugerido.selected .hora-tipo {
     color: #E3F2FD !important;
 }
+
+/* ============================================
+   FIX: SWEETALERT2 MODALES - MODO OSCURO
+   ============================================ */
+
+/* Popup/Modal principal */
+:root.dark-mode .swal2-popup,
+body.dark-mode .swal2-popup {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%) !important;
+    border: 2px solid #505050 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Título del modal */
+:root.dark-mode .swal2-title,
+body.dark-mode .swal2-title {
+    color: #E3F2FD !important;
+    font-weight: 700 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Contenido HTML del modal (mensaje) */
+:root.dark-mode .swal2-html-container,
+body.dark-mode .swal2-html-container {
+    color: #E0E0E0 !important;
+    font-weight: 500 !important;
+}
+
+/* Texto dentro del contenedor HTML */
+:root.dark-mode .swal2-html-container p,
+body.dark-mode .swal2-html-container p,
+:root.dark-mode .swal2-html-container strong,
+body.dark-mode .swal2-html-container strong {
+    color: #E0E0E0 !important;
+}
+
+/* Ícono de error */
+:root.dark-mode .swal2-icon.swal2-error,
+body.dark-mode .swal2-icon.swal2-error {
+    border-color: #EF5350 !important;
+}
+
+:root.dark-mode .swal2-icon.swal2-error [class^='swal2-x-mark-line'],
+body.dark-mode .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #EF5350 !important;
+}
+
+/* Ícono de success */
+:root.dark-mode .swal2-icon.swal2-success,
+body.dark-mode .swal2-icon.swal2-success {
+    border-color: #66BB6A !important;
+}
+
+:root.dark-mode .swal2-icon.swal2-success [class^='swal2-success-line'],
+body.dark-mode .swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #66BB6A !important;
+}
+
+:root.dark-mode .swal2-icon.swal2-success .swal2-success-ring,
+body.dark-mode .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(102, 187, 106, 0.3) !important;
+}
+
+/* Ícono de warning */
+:root.dark-mode .swal2-icon.swal2-warning,
+body.dark-mode .swal2-icon.swal2-warning {
+    border-color: #FFA726 !important;
+    color: #FFA726 !important;
+}
+
+/* Ícono de info */
+:root.dark-mode .swal2-icon.swal2-info,
+body.dark-mode .swal2-icon.swal2-info {
+    border-color: #42A5F5 !important;
+    color: #42A5F5 !important;
+}
+
+/* Ícono de question */
+:root.dark-mode .swal2-icon.swal2-question,
+body.dark-mode .swal2-icon.swal2-question {
+    border-color: #90CAF9 !important;
+    color: #90CAF9 !important;
+}
+
+/* Botones de acción */
+:root.dark-mode .swal2-confirm,
+body.dark-mode .swal2-confirm {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    color: #FFFFFF !important;
+    border: 2px solid #2196F3 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4) !important;
+}
+
+:root.dark-mode .swal2-confirm:hover,
+body.dark-mode .swal2-confirm:hover {
+    background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%) !important;
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6) !important;
+}
+
+:root.dark-mode .swal2-cancel,
+body.dark-mode .swal2-cancel {
+    background: linear-gradient(135deg, #616161 0%, #424242 100%) !important;
+    color: #E0E0E0 !important;
+    border: 2px solid #757575 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+:root.dark-mode .swal2-cancel:hover,
+body.dark-mode .swal2-cancel:hover {
+    background: linear-gradient(135deg, #757575 0%, #616161 100%) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+:root.dark-mode .swal2-deny,
+body.dark-mode .swal2-deny {
+    background: linear-gradient(135deg, #C62828 0%, #B71C1C 100%) !important;
+    color: #FFFFFF !important;
+    border: 2px solid #EF5350 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4) !important;
+}
+
+:root.dark-mode .swal2-deny:hover,
+body.dark-mode .swal2-deny:hover {
+    background: linear-gradient(135deg, #B71C1C 0%, #C62828 100%) !important;
+    box-shadow: 0 6px 16px rgba(244, 67, 54, 0.6) !important;
+}
+
+/* Footer del modal */
+:root.dark-mode .swal2-footer,
+body.dark-mode .swal2-footer {
+    border-top: 1px solid #404040 !important;
+    color: #B0B0B0 !important;
+}
+
+/* Input y textarea en modales */
+:root.dark-mode .swal2-input,
+body.dark-mode .swal2-input,
+:root.dark-mode .swal2-textarea,
+body.dark-mode .swal2-textarea {
+    background-color: #1f1f1f !important;
+    color: #E0E0E0 !important;
+    border: 2px solid #505050 !important;
+}
+
+:root.dark-mode .swal2-input:focus,
+body.dark-mode .swal2-input:focus,
+:root.dark-mode .swal2-textarea:focus,
+body.dark-mode .swal2-textarea:focus {
+    border-color: #64B5F6 !important;
+    box-shadow: 0 0 8px rgba(100, 181, 246, 0.3) !important;
+}
+
+/* Loader/spinner */
+:root.dark-mode .swal2-loader,
+body.dark-mode .swal2-loader {
+    border-color: #2196F3 rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Timer progress bar */
+:root.dark-mode .swal2-timer-progress-bar,
+body.dark-mode .swal2-timer-progress-bar {
+    background: #2196F3 !important;
+}
+
+/* Validación de inputs */
+:root.dark-mode .swal2-input.swal2-inputerror,
+body.dark-mode .swal2-input.swal2-inputerror,
+:root.dark-mode .swal2-textarea.swal2-inputerror,
+body.dark-mode .swal2-textarea.swal2-inputerror {
+    border-color: #EF5350 !important;
+}
+
+:root.dark-mode .swal2-validation-message,
+body.dark-mode .swal2-validation-message {
+    background-color: #1a1a1a !important;
+    color: #EF5350 !important;
+    border: 1px solid #EF5350 !important;
+}
