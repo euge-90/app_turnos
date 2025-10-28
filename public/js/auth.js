@@ -334,3 +334,171 @@ if (document.getElementById('logoutBtn')) {
 }
 
 // Nota: La inicialización del modo oscuro se maneja en app.js para evitar duplicación
+
+// ========================================
+// TC-V2-43: Sistema de cierre automático por inactividad
+// ========================================
+
+const InactivityManager = {
+    // Configuración (en milisegundos)
+    TIMEOUT_DURATION: 30 * 60 * 1000,        // 30 minutos
+    WARNING_BEFORE: 2 * 60 * 1000,           // Warning 2 minutos antes (a los 28 min)
+
+    // Timers
+    inactivityTimer: null,
+    warningTimer: null,
+    warningShown: false,
+
+    // Inicializar el sistema
+    init() {
+        // Solo inicializar si el usuario está autenticado y NO está en login.html
+        const currentPage = window.location.pathname;
+        const isLoginPage = currentPage.includes('login.html');
+
+        if (isLoginPage) {
+            return; // No activar en página de login
+        }
+
+        // Verificar que el usuario esté autenticado
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                this.startTracking();
+                console.log('Sistema de inactividad iniciado (timeout: 30 min)');
+            } else {
+                this.stopTracking();
+            }
+        });
+    },
+
+    // Iniciar seguimiento de actividad
+    startTracking() {
+        // Eventos que indican actividad del usuario
+        const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+
+        // Agregar listeners a todos los eventos
+        activityEvents.forEach(event => {
+            document.addEventListener(event, () => this.resetTimer(), { passive: true });
+        });
+
+        // Iniciar timer por primera vez
+        this.resetTimer();
+    },
+
+    // Detener seguimiento
+    stopTracking() {
+        if (this.inactivityTimer) {
+            clearTimeout(this.inactivityTimer);
+            this.inactivityTimer = null;
+        }
+
+        if (this.warningTimer) {
+            clearTimeout(this.warningTimer);
+            this.warningTimer = null;
+        }
+
+        this.warningShown = false;
+    },
+
+    // Resetear timer de inactividad
+    resetTimer() {
+        // Limpiar timers existentes
+        if (this.inactivityTimer) {
+            clearTimeout(this.inactivityTimer);
+        }
+
+        if (this.warningTimer) {
+            clearTimeout(this.warningTimer);
+        }
+
+        // Cerrar warning si estaba abierto
+        if (this.warningShown) {
+            Swal.close();
+            this.warningShown = false;
+        }
+
+        // Timer para mostrar warning (28 minutos)
+        const warningTime = this.TIMEOUT_DURATION - this.WARNING_BEFORE;
+        this.warningTimer = setTimeout(() => {
+            this.showWarning();
+        }, warningTime);
+
+        // Timer para logout automático (30 minutos)
+        this.inactivityTimer = setTimeout(() => {
+            this.logout();
+        }, this.TIMEOUT_DURATION);
+    },
+
+    // Mostrar advertencia de inactividad
+    async showWarning() {
+        this.warningShown = true;
+
+        const result = await Swal.fire({
+            title: '⏰ Sesión por Expirar',
+            html: `
+                <p style="margin-bottom: 1rem;">
+                    Tu sesión está por expirar por inactividad.
+                </p>
+                <p style="font-weight: 600; color: var(--primary-color);">
+                    ¿Deseas continuar?
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-light); margin-top: 1rem;">
+                    La sesión se cerrará automáticamente en <strong>2 minutos</strong> si no hay actividad.
+                </p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '✅ Continuar Sesión',
+            cancelButtonText: '🚪 Cerrar Sesión',
+            confirmButtonColor: '#2196f3',
+            cancelButtonColor: '#f44336',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+
+        this.warningShown = false;
+
+        if (result.isConfirmed) {
+            // Usuario confirmó, resetear timer
+            this.resetTimer();
+            Utils.toastSuccess('Sesión extendida', 2000);
+        } else if (result.isDismissed) {
+            // Usuario eligió cerrar sesión
+            await this.logout();
+        }
+    },
+
+    // Cerrar sesión por inactividad
+    async logout() {
+        console.log('Cerrando sesión por inactividad...');
+
+        // Detener tracking
+        this.stopTracking();
+
+        // Mostrar mensaje
+        await Swal.fire({
+            title: '⏰ Sesión Expirada',
+            text: 'Tu sesión ha sido cerrada por inactividad.',
+            icon: 'info',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2196f3',
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        // Cerrar sesión en Firebase
+        await auth.signOut();
+
+        // Redirigir a login con parámetro
+        window.location.href = 'login.html?reason=inactivity';
+    }
+};
+
+// Inicializar el sistema cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        InactivityManager.init();
+    });
+} else {
+    // DOM ya está listo
+    InactivityManager.init();
+}
