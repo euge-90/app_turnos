@@ -2967,3 +2967,180 @@ body.dark-mode .swal2-validation-message {
     color: #EF5350 !important;
     border: 1px solid #EF5350 !important;
 }
+
+/* ================================================================
+   LOGIN PAGE - MODO OSCURO (MEJORAS VISUALES)
+   ================================================================ */
+
+/* Fondo de la página de login - Gradiente oscuro con toques de azul */
+:root.dark-mode .login-body,
+body.dark-mode .login-body {
+    background: linear-gradient(135deg, #0D47A1 0%, #1a1a1a 50%, #0D47A1 100%) !important;
+}
+
+/* Tarjeta de login - Fondo oscuro con borde brillante */
+:root.dark-mode .login-card,
+body.dark-mode .login-card {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%) !important;
+    border: 2px solid #1565C0 !important;
+    box-shadow: 0 8px 32px rgba(21, 101, 192, 0.4), 0 0 0 1px rgba(100, 181, 246, 0.1) !important;
+}
+
+/* Header del login */
+:root.dark-mode .login-header p,
+body.dark-mode .login-header p {
+    color: #B0B0B0 !important;
+}
+
+/* Tabs - Mejorar visibilidad */
+:root.dark-mode .tabs,
+body.dark-mode .tabs {
+    border-bottom-color: #505050 !important;
+}
+
+:root.dark-mode .tab-btn,
+body.dark-mode .tab-btn {
+    color: #808080 !important;
+}
+
+:root.dark-mode .tab-btn.active,
+body.dark-mode .tab-btn.active {
+    color: #64B5F6 !important;
+    border-bottom-color: #64B5F6 !important;
+    font-weight: 600 !important;
+}
+
+:root.dark-mode .tab-btn:hover,
+body.dark-mode .tab-btn:hover {
+    color: #90CAF9 !important;
+}
+
+/* Labels de formularios */
+:root.dark-mode .form-group label,
+body.dark-mode .form-group label {
+    color: #E0E0E0 !important;
+    font-weight: 500 !important;
+}
+
+/* Inputs - Mejor contraste y estilo */
+:root.dark-mode .form-group input,
+body.dark-mode .form-group input,
+:root.dark-mode .auth-form input,
+body.dark-mode .auth-form input {
+    background-color: #1a1a1a !important;
+    border: 2px solid #505050 !important;
+    color: #E0E0E0 !important;
+}
+
+:root.dark-mode .form-group input::placeholder,
+body.dark-mode .form-group input::placeholder,
+:root.dark-mode .auth-form input::placeholder,
+body.dark-mode .auth-form input::placeholder {
+    color: #707070 !important;
+}
+
+:root.dark-mode .form-group input:focus,
+body.dark-mode .form-group input:focus,
+:root.dark-mode .auth-form input:focus,
+body.dark-mode .auth-form input:focus {
+    background-color: #252525 !important;
+    border-color: #2196F3 !important;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2) !important;
+}
+
+/* Checkbox y texto "Recordarme" */
+:root.dark-mode .checkbox-label,
+body.dark-mode .checkbox-label {
+    color: #B0B0B0 !important;
+}
+
+:root.dark-mode .checkbox-label input[type="checkbox"],
+body.dark-mode .checkbox-label input[type="checkbox"] {
+    accent-color: #2196F3 !important;
+}
+
+/* Enlaces */
+:root.dark-mode .link,
+body.dark-mode .link {
+    color: #64B5F6 !important;
+}
+
+:root.dark-mode .link:hover,
+body.dark-mode .link:hover {
+    color: #90CAF9 !important;
+}
+
+/* Divider "o" */
+:root.dark-mode .divider::before,
+body.dark-mode .divider::before {
+    background: #505050 !important;
+}
+
+:root.dark-mode .divider span,
+body.dark-mode .divider span {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%) !important;
+    color: #808080 !important;
+}
+
+/* BOTÓN DE GOOGLE - MUY MEJORADO Y DESTACADO */
+:root.dark-mode .btn-google,
+body.dark-mode .btn-google {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%) !important;
+    border: 2px solid #E0E0E0 !important;
+    color: #333333 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+
+:root.dark-mode .btn-google:hover,
+body.dark-mode .btn-google:hover {
+    background: linear-gradient(135deg, #FFFFFF 0%, #EEEEEE 100%) !important;
+    border-color: #2196F3 !important;
+    box-shadow: 0 6px 24px rgba(33, 150, 243, 0.4),
+                0 0 0 2px rgba(33, 150, 243, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* SVG del logo de Google - mantener colores originales */
+:root.dark-mode .btn-google svg,
+body.dark-mode .btn-google svg {
+    filter: none !important;
+}
+
+/* Password strength bar */
+:root.dark-mode .password-strength,
+body.dark-mode .password-strength {
+    background-color: #1a1a1a !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Mensajes de error */
+:root.dark-mode .error-message,
+body.dark-mode .error-message {
+    color: #EF5350 !important;
+}
+
+:root.dark-mode .error-message-general,
+body.dark-mode .error-message-general {
+    background-color: #2d1414 !important;
+    color: #EF5350 !important;
+    border: 1px solid #C62828 !important;
+}
+
+/* Admin access link */
+:root.dark-mode .admin-access,
+body.dark-mode .admin-access {
+    border-top-color: #505050 !important;
+}
+
+:root.dark-mode .admin-access .link,
+body.dark-mode .admin-access .link {
+    color: #64B5F6 !important;
+}
+
+:root.dark-mode .admin-access .link:hover,
+body.dark-mode .admin-access .link:hover {
+    color: #90CAF9 !important;
+}
