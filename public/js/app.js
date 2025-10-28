@@ -1113,82 +1113,87 @@ async function obtenerHistorialTurnos(filters = {
 
     try {
         const ahora = new Date();
+        ahora.setHours(23, 59, 59, 999); // Incluir todo el día de hoy
 
-        // Construir query base
+        // Construir query base - SOLO traer turnos del usuario
+        // NO aplicar filtros de fecha en Firestore para evitar excluir cancelados futuros
         let query = db.collection('turnos')
             .where('usuarioId', '==', user.uid);
 
-        // TC-V2-41: Aplicar filtro de rango de fechas personalizado
-        if (filters.period === 'custom' && filters.fechaDesde && filters.fechaHasta) {
-            const desde = new Date(filters.fechaDesde);
-            desde.setHours(0, 0, 0, 0);
-            const hasta = new Date(filters.fechaHasta);
-            hasta.setHours(23, 59, 59, 999);
-
-            const desdeTimestamp = firebase.firestore.Timestamp.fromDate(desde);
-            const hastaTimestamp = firebase.firestore.Timestamp.fromDate(hasta);
-
-            query = query
-                .where('fecha', '>=', desdeTimestamp)
-                .where('fecha', '<=', hastaTimestamp);
-        }
-        // Aplicar filtro de período predefinido (si no es personalizado)
-        else if (filters.period !== 'all' && filters.period !== 'custom') {
-            const fechaInicio = new Date();
-            if (filters.period === 'month') {
-                fechaInicio.setMonth(fechaInicio.getMonth() - 1);
-            } else if (filters.period === '3months') {
-                fechaInicio.setMonth(fechaInicio.getMonth() - 3);
-            }
-            // ✅ Convertir a Timestamp para comparar correctamente con Firestore
-            fechaInicio.setHours(0, 0, 0, 0);
-            const fechaInicioTimestamp = firebase.firestore.Timestamp.fromDate(fechaInicio);
-
-            // FIX: Agregar límite superior para excluir turnos futuros desde la query
-            const ahoraTimestamp = firebase.firestore.Timestamp.fromDate(ahora);
-
-            query = query
-                .where('fecha', '>=', fechaInicioTimestamp)
-                .where('fecha', '<=', ahoraTimestamp);
-        }
-
         const snapshot = await query.get();
 
-        // Filtrar en JavaScript para excluir turnos activos y aplicar filtros adicionales
+        // Calcular fechas límite para filtros de período
+        let fechaInicio = null;
+        let fechaFin = null;
+
+        if (filters.period === 'custom' && filters.fechaDesde && filters.fechaHasta) {
+            // Período personalizado
+            fechaInicio = new Date(filters.fechaDesde);
+            fechaInicio.setHours(0, 0, 0, 0);
+            fechaFin = new Date(filters.fechaHasta);
+            fechaFin.setHours(23, 59, 59, 999);
+        } else if (filters.period === 'month') {
+            // Último mes
+            fechaInicio = new Date();
+            fechaInicio.setMonth(fechaInicio.getMonth() - 1);
+            fechaInicio.setHours(0, 0, 0, 0);
+            fechaFin = new Date(ahora);
+        } else if (filters.period === '3months') {
+            // Últimos 3 meses
+            fechaInicio = new Date();
+            fechaInicio.setMonth(fechaInicio.getMonth() - 3);
+            fechaInicio.setHours(0, 0, 0, 0);
+            fechaFin = new Date(ahora);
+        }
+        // Si period === 'all', no hay límites de fecha
+
+        // Filtrar TODO en JavaScript
         return snapshot.docs
             .map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                // ✅ Parsear fecha (compatible con strings y Timestamps)
                 fecha: parseFechaFirestore(doc.data().fecha)
             }))
             .filter(turno => {
-                // Excluir turnos confirmados en el futuro (esos son "activos")
-                if (turno.estado === 'confirmado' && turno.fecha >= ahora) {
-                    return false;
+                // 1. DEFINIR QUÉ ES "HISTORIAL"
+                // Historial incluye:
+                // - Turnos cancelados (cualquier fecha)
+                // - Turnos confirmados con fecha pasada (completados)
+
+                const esCancelado = turno.estado === 'cancelado';
+                const esCompletado = turno.estado === 'confirmado' && turno.fecha < ahora;
+                const esHistorial = esCancelado || esCompletado;
+
+                if (!esHistorial) {
+                    return false; // Excluir turnos activos (confirmados futuros)
                 }
 
-                // Aplicar filtro de estado
+                // 2. APLICAR FILTRO DE ESTADO
                 if (filters.status !== 'all') {
-                    // Mapear filtros del HTML a estados reales de la BD
-                    if (filters.status === 'cancelled') {
-                        // Filtrar solo cancelados
-                        if (turno.estado !== 'cancelado') {
-                            return false;
-                        }
-                    } else if (filters.status === 'completed') {
-                        // Filtrar solo completados (confirmados con fecha pasada)
-                        if (!(turno.estado === 'confirmado' && turno.fecha < ahora)) {
-                            return false;
-                        }
+                    if (filters.status === 'cancelled' && !esCancelado) {
+                        return false;
+                    }
+                    if (filters.status === 'completed' && !esCompletado) {
+                        return false;
                     }
                 }
 
-                // TC-V2-41: Aplicar filtro por servicio (validación defensiva)
+                // 3. APLICAR FILTRO DE PERÍODO
+                if (fechaInicio && fechaFin) {
+                    // Para cancelados: incluir si la fecha está en el rango
+                    // Para completados: incluir si la fecha está en el rango (ya sabemos que es pasada)
+                    if (turno.fecha < fechaInicio || turno.fecha > fechaFin) {
+                        return false;
+                    }
+                }
+
+                // 4. APLICAR FILTRO POR SERVICIO
                 if (filters.servicio !== 'all') {
-                    // Verificar si servicio es objeto o string
-                    const servicioId = typeof turno.servicio === 'object' ? turno.servicio.id : turno.servicio;
-                    if (servicioId !== filters.servicio) {
+                    const servicioId = typeof turno.servicio === 'object' && turno.servicio
+                        ? turno.servicio.id
+                        : turno.servicio;
+
+                    if (!servicioId || servicioId !== filters.servicio) {
                         return false;
                     }
                 }
