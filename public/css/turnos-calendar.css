@@ -2459,3 +2459,127 @@ body.dark-mode .modal-footer,
 body.dark-mode .popup-footer {
     border-top: 2px solid #404040;
 }
+
+/* ============================================
+   HEADERS DEL CALENDARIO - MODO OSCURO
+   ============================================ */
+
+/* Headers de días de la semana */
+:root.dark-mode .calendar-header,
+body.dark-mode .calendar-header,
+:root.dark-mode .calendar-weekdays,
+body.dark-mode .calendar-weekdays,
+:root.dark-mode .weekday-header,
+body.dark-mode .weekday-header {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    color: #E3F2FD !important;
+    font-weight: 700;
+    border-bottom: 2px solid #2196F3;
+    padding: 12px 0;
+}
+
+:root.dark-mode .calendar-weekday,
+body.dark-mode .calendar-weekday,
+:root.dark-mode .weekday,
+body.dark-mode .weekday,
+:root.dark-mode .day-name,
+body.dark-mode .day-name {
+    color: #E3F2FD !important;
+    font-weight: 700;
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 5px;
+    background-color: #1565C0 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:root.dark-mode .calendar-weekday:last-child,
+body.dark-mode .calendar-weekday:last-child,
+:root.dark-mode .weekday:last-child,
+body.dark-mode .weekday:last-child,
+:root.dark-mode .day-name:last-child,
+body.dark-mode .day-name:last-child {
+    border-right: none;
+}
+
+/* Fin de semana (Sábado y Domingo) */
+:root.dark-mode .calendar-weekday.weekend,
+body.dark-mode .calendar-weekday.weekend,
+:root.dark-mode .weekday.weekend,
+body.dark-mode .weekday.weekend {
+    color: #90CAF9 !important;
+    background-color: #0D47A1 !important;
+}
+
+/* Header del mes */
+:root.dark-mode .calendar-month-header,
+body.dark-mode .calendar-month-header,
+:root.dark-mode .month-header,
+body.dark-mode .month-header {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: bold;
+    font-size: 1.3em;
+    padding: 15px;
+    border-bottom: 3px solid #2196F3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Botones de navegación del mes */
+:root.dark-mode .calendar-nav-btn,
+body.dark-mode .calendar-nav-btn,
+:root.dark-mode .month-nav-btn,
+body.dark-mode .month-nav-btn {
+    background-color: #1976D2 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #42A5F5;
+    font-weight: bold;
+}
+
+:root.dark-mode .calendar-nav-btn:hover,
+body.dark-mode .calendar-nav-btn:hover,
+:root.dark-mode .month-nav-btn:hover,
+body.dark-mode .month-nav-btn:hover {
+    background-color: #1565C0 !important;
+    border-color: #64B5F6;
+    box-shadow: 0 0 12px rgba(33, 150, 243, 0.5);
+}
+
+/* Grid del calendario */
+:root.dark-mode .calendar-grid,
+body.dark-mode .calendar-grid {
+    background-color: #1a1a1a;
+    border: 2px solid #404040;
+    padding: 10px;
+}
+
+/* ============================================
+   TÍTULOS Y SECCIONES - MODO OSCURO
+   ============================================ */
+
+:root.dark-mode .section-title,
+body.dark-mode .section-title {
+    color: #E3F2FD !important;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark-mode h2,
+body.dark-mode h2 {
+    color: #E3F2FD !important;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark-mode h3,
+body.dark-mode h3 {
+    color: #E3F2FD !important;
+    font-weight: 600;
+}
+
+/* Subtítulos con ícono de calendario */
+:root.dark-mode .section-subtitle,
+body.dark-mode .section-subtitle {
+    color: #90CAF9 !important;
+}
