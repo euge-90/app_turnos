@@ -273,6 +273,12 @@ class GestorTurnos {
             throw new Error('No puedes reservar turnos en fechas pasadas');
         }
 
+        // Verificar si la fecha está bloqueada
+        const esBloqueada = await Utils.esFechaBloqueada(fechaNormalizada);
+        if (esBloqueada) {
+            throw new Error('Esta fecha no está disponible para reservas');
+        }
+
         // Verificar límite de turnos activos (filtrando en memoria por fecha futura)
         const turnosActivosSnapshot = await db.collection('turnos')
             .where('usuarioId', '==', user.uid)
@@ -581,6 +587,23 @@ const UI = {
         // V2: Obtener cantidad de turnos por día del mes para badges
         const turnosPorDia = await gestorTurnos.obtenerTurnosPorDiaDelMes(year, month);
 
+        // Obtener fechas bloqueadas del mes para validación
+        const fechasBloqueadas = new Set();
+        try {
+            const primerDiaMes = new Date(year, month, 1);
+            const ultimoDiaMes = new Date(year, month + 1, 0);
+
+            for (let d = primerDiaMes.getDate(); d <= ultimoDiaMes.getDate(); d++) {
+                const fecha = new Date(year, month, d);
+                const esBloqueada = await Utils.esFechaBloqueada(fecha);
+                if (esBloqueada) {
+                    fechasBloqueadas.add(d); // Guardar el día del mes
+                }
+            }
+        } catch (error) {
+            console.error('Error al obtener fechas bloqueadas:', error);
+        }
+
         // Headers de días
         const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         dias.forEach(dia => {
@@ -634,6 +657,9 @@ const UI = {
             // Verificar si está en el rango permitido (desde hoy hasta maxDate)
             const enRango = fecha >= today && fecha <= maxDate;
 
+            // Verificar si el día está bloqueado
+            const esBloqueado = fechasBloqueadas.has(day);
+
             // Marcar días pasados
             if (fecha < today) {
                 dayEl.classList.add('no-laboral');
@@ -641,6 +667,9 @@ const UI = {
                 dayEl.classList.add('no-laboral');
             } else if (!enRango) {
                 dayEl.classList.add('no-laboral');
+            } else if (esBloqueado) {
+                dayEl.classList.add('no-laboral');
+                dayEl.title = 'Fecha bloqueada por el administrador';
             } else {
                 dayEl.classList.add('disponible');
                 dayEl.addEventListener('click', async () => {
