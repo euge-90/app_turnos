@@ -2606,3 +2606,116 @@ body.dark-mode h3 {
 body.dark-mode .section-subtitle {
     color: #90CAF9 !important;
 }
+
+/* ============================================
+   FIX CRÍTICO: CONTRASTE SERVICIOS, CALENDARIO Y HORARIOS
+   ============================================ */
+
+/* FIX 1: Servicio seleccionado - Texto BLANCO visible sobre fondo brillante */
+:root.dark-mode .servicio-card.selected,
+body.dark-mode .servicio-card.selected {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    border: 3px solid #2196F3 !important;
+    box-shadow: 0 8px 32px rgba(33, 150, 243, 0.5) !important;
+}
+
+:root.dark-mode .servicio-card.selected h4,
+body.dark-mode .servicio-card.selected h4,
+:root.dark-mode .servicio-card.selected *,
+body.dark-mode .servicio-card.selected * {
+    color: #FFFFFF !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark-mode .servicio-card.selected .duracion,
+body.dark-mode .servicio-card.selected .duracion {
+    color: #E3F2FD !important;
+    opacity: 0.95;
+}
+
+:root.dark-mode .servicio-card.selected .precio,
+body.dark-mode .servicio-card.selected .precio {
+    color: #FFFFFF !important;
+    font-weight: 800;
+    font-size: 1.4em;
+}
+
+/* FIX 2: Días del calendario - Clases .disponible, .completo, .no-laboral */
+
+/* Día DISPONIBLE - VERDE BRILLANTE */
+:root.dark-mode .calendar-day.disponible,
+body.dark-mode .calendar-day.disponible {
+    background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%) !important;
+    border: 2px solid #66BB6A !important;
+    color: #E8F5E9 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4) !important;
+}
+
+:root.dark-mode .calendar-day.disponible:hover,
+body.dark-mode .calendar-day.disponible:hover {
+    background: linear-gradient(135deg, #388E3C 0%, #43A047 100%) !important;
+    border-color: #81C784 !important;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.6) !important;
+    transform: scale(1.08);
+}
+
+/* Día COMPLETO - ROJO VISIBLE */
+:root.dark-mode .calendar-day.completo,
+body.dark-mode .calendar-day.completo {
+    background: linear-gradient(135deg, #C62828 0%, #D32F2F 100%) !important;
+    border: 2px solid #EF5350 !important;
+    color: #FFCDD2 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4) !important;
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+/* Día NO LABORAL - GRIS VISIBLE */
+:root.dark-mode .calendar-day.no-laboral,
+body.dark-mode .calendar-day.no-laboral {
+    background: linear-gradient(135deg, #424242 0%, #616161 100%) !important;
+    border: 2px solid #757575 !important;
+    color: #E0E0E0 !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* FIX 3: Horarios NO SELECCIONADOS - MÁS VISIBLES */
+:root.dark-mode .time-slot,
+body.dark-mode .time-slot,
+:root.dark-mode .horario-btn,
+body.dark-mode .horario-btn {
+    background: linear-gradient(135deg, #3a3a3a 0%, #2f2f2f 100%) !important;
+    border: 2px solid #606060 !important;
+    color: #E0E0E0 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+:root.dark-mode .time-slot:hover:not(.disabled):not(.occupied):not(.selected),
+body.dark-mode .time-slot:hover:not(.disabled):not(.occupied):not(.selected),
+:root.dark-mode .horario-btn:hover:not(.disabled):not(.ocupado):not(.selected),
+body.dark-mode .horario-btn:hover:not(.disabled):not(.ocupado):not(.selected) {
+    background: linear-gradient(135deg, #4a4a4a 0%, #3f3f3f 100%) !important;
+    border-color: #64B5F6 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(100, 181, 246, 0.4) !important;
+    transform: scale(1.05);
+}
+
+/* Horario seleccionado - Mantener azul brillante pero con mejor contraste */
+:root.dark-mode .time-slot.selected,
+body.dark-mode .time-slot.selected,
+:root.dark-mode .horario-btn.selected,
+body.dark-mode .horario-btn.selected {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    border: 3px solid #2196F3 !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 20px rgba(33, 150, 243, 0.6) !important;
+    transform: scale(1.05);
+}
