@@ -641,13 +641,13 @@ section h3 {
    LOGIN PAGE - MODO CLARO (MEJORADO)
    ================================================================ */
 
-/* Fondo de la página de login - Gradiente dinámico y elegante */
+/* Fondo de la página de login - Gradiente dinámico y elegante con colores de la app */
 .login-body {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #ff6b6b 100%);
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 50%, #2196f3 100%);
     position: relative;
 }
 
@@ -698,15 +698,15 @@ section h3 {
     cursor: pointer;
     font-size: 1.3rem;
     transition: all 0.3s ease;
-    border: 2px solid rgba(255, 107, 107, 0.2);
+    border: 2px solid rgba(33, 150, 243, 0.2);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-dark-mode-login:hover {
-    background: rgba(255, 107, 107, 0.15);
-    border-color: #ff6b6b;
+    background: rgba(33, 150, 243, 0.15);
+    border-color: #2196f3;
     transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 body.dark-mode .btn-dark-mode-login {
@@ -725,7 +725,7 @@ body.dark-mode .btn-dark-mode-login:hover {
 }
 
 .login-header h1 {
-    color: #ff6b6b;
+    color: #2196f3;
     margin-bottom: 0.5rem;
     font-weight: 700;
 }
@@ -766,15 +766,15 @@ body.dark-mode .btn-dark-mode-login:hover {
 }
 
 .tab-btn:hover {
-    color: #ff6b6b;
-    background: rgba(255, 107, 107, 0.05);
+    color: #2196f3;
+    background: rgba(33, 150, 243, 0.05);
 }
 
 .tab-btn.active {
-    color: #ff6b6b;
-    border-bottom-color: #ff6b6b;
+    color: #2196f3;
+    border-bottom-color: #2196f3;
     font-weight: 600;
-    background: rgba(255, 107, 107, 0.08);
+    background: rgba(33, 150, 243, 0.08);
 }
 
 .tab-content {
@@ -824,9 +824,9 @@ body.dark-mode .btn-dark-mode-login:hover {
 
 .form-group input:focus {
     outline: none;
-    border-color: #ff6b6b;
+    border-color: #2196f3;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.15);
+    box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.15);
     transform: translateY(-1px);
 }
 
@@ -875,18 +875,18 @@ body.dark-mode .btn-dark-mode-login:hover {
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #ff6b6b;
+    accent-color: #2196f3;
 }
 
 .link {
-    color: #ff6b6b;
+    color: #2196f3;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .link:hover {
-    color: #ee5a6f;
+    color: #1976d2;
     text-decoration: underline;
 }
 
@@ -971,10 +971,10 @@ body.dark-mode .btn-dark-mode-login:hover {
 
 .btn-google:hover {
     background: #fafafa;
-    border-color: #ff6b6b;
+    border-color: #2196f3;
     box-shadow:
-        0 4px 16px rgba(255, 107, 107, 0.25),
-        0 0 0 3px rgba(255, 107, 107, 0.1);
+        0 4px 16px rgba(33, 150, 243, 0.25),
+        0 0 0 3px rgba(33, 150, 243, 0.1);
     transform: translateY(-2px);
 }
 
