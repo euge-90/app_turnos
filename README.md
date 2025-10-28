@@ -1,105 +1,159 @@
-# ✂️ Turnify V2 - Sistema de Gestión de Turnos para Peluquería
+# ✂️ Turnify - Sistema de Gestión de Turnos para Peluquería
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Firebase](https://img.shields.io/badge/Firebase-9.22.0-orange)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)
 ![License](https://img.shields.io/badge/license-Academic-green)
 
-Sistema web completo para gestión de turnos de peluquería, desarrollado con Vanilla JavaScript y Firebase. Incluye panel de administración avanzado, notificaciones por email, lista de espera, y mucho más.
+Sistema web completo para gestión de turnos de peluquería, desarrollado con Vanilla JavaScript y Firebase. Incluye panel de administración avanzado, notificaciones por email, sistema de lista de espera, modo oscuro y métricas en tiempo real.
 
 ---
 
 ## 📋 Tabla de Contenidos
 
-- [Características](#-características)
-- [Equipo](#-equipo)
+- [Acerca del Proyecto](#-acerca-del-proyecto)
+- [Versiones del Proyecto](#-versiones-del-proyecto)
+- [Funcionalidades](#-funcionalidades)
 - [Tecnologías](#-tecnologías)
+- [Equipo de Desarrollo](#-equipo-de-desarrollo)
 - [Instalación](#-instalación)
 - [Configuración](#-configuración)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Funcionalidades](#-funcionalidades)
 - [Deploy](#-deploy)
-- [Testing](#-testing)
-- [Changelog](#-changelog)
 - [Licencia](#-licencia)
 
 ---
 
-## ✨ Características
+## 🎯 Acerca del Proyecto
 
-### Para Clientes 👥
+Turnify es una aplicación web de gestión de turnos desarrollada como proyecto académico. El sistema permite a los clientes reservar turnos en línea y al administrador gestionar la agenda, servicios y clientes de manera eficiente.
 
-- ✅ Registro e inicio de sesión con Firebase Auth
-- ✅ Reserva de turnos con selección de servicio, fecha y hora
-- ✅ Modificación de turnos (hasta 2 veces por turno)
-- ✅ Cancelación de turnos (con 1 hora de anticipación)
-- ✅ Historial completo de turnos (completados y cancelados)
-- ✅ Perfil de usuario editable (nombre, teléfono)
-- ✅ Cambio de contraseña seguro con re-autenticación
-- ✅ **NUEVO:** Lista de espera para horarios ocupados
-- ✅ **NUEVO:** Notificaciones por email automáticas
-- ✅ **NUEVO:** Estadísticas personales de turnos
-- ✅ **NUEVO:** Vista de listas de espera activas en perfil
-
-### Para Administradores 👨‍💼
-
-- ✅ **Dashboard completo** con métricas en tiempo real
-- ✅ **Ingresos del mes** calculados automáticamente
-- ✅ **Gráfico de turnos** por día de la semana
-- ✅ **Top 3 servicios** más solicitados con medallas
-- ✅ **Horarios populares** del mes
-- ✅ **Clientes frecuentes** (más de 3 turnos)
-- ✅ **Próximo turno** con detalles del cliente
-- ✅ Agenda del día con vista detallada
-- ✅ Vista semanal completa
-- ✅ Búsqueda de turnos por cliente
-- ✅ **Marcar turnos como completados**
-- ✅ Cancelar turnos con notificación al cliente
-- ✅ Gestión completa de servicios (CRUD)
-- ✅ Bloqueo de fechas (vacaciones, feriados)
-- ✅ Exportación de turnos a CSV por mes
-- ✅ Estadísticas de servicios más solicitados
-
-### Sistema de Notificaciones 💌
-
-- ✅ Email de confirmación al reservar
-- ✅ Recordatorio 24 horas antes del turno
-- ✅ Email al cancelar turno
-- ✅ Notificación de lista de espera
-- ✅ Templates HTML profesionales y responsivos
-- ✅ Integración con SendGrid API
-
-### Sistema de Lista de Espera ⏰
-
-- ✅ Modal automático cuando un horario está ocupado
-- ✅ Notificación automática cuando se libera
-- ✅ Sistema FIFO (First In, First Out)
-- ✅ Gestión desde el perfil del usuario
-- ✅ Integración con sistema de cancelaciones
+**URL de Producción:** https://appturnos-a085a.web.app
 
 ---
 
-## 👥 Equipo
+## 📌 Versiones del Proyecto
 
-### Versión 2.0 (Octubre 2025)
+### **Versión 1.0** (Septiembre 2025)
 
-**Desarrolladora Principal:**
-- **Eugenia Ojeda** - Desarrollo Full Stack
+Sistema base con funcionalidades esenciales de reserva y gestión de turnos.
 
-**Documentación y Testing:**
-- Teo Gandolfo
-- Mateo Santucci
-- Pedro Hauchar
-- Bruno Carlomagno
+#### Funcionalidades V1:
+
+**Para Clientes:**
+- Sistema de registro e inicio de sesión con Firebase Authentication
+- Reserva de turnos con selección de servicio, fecha y hora
+- Visualización de turnos activos
+- Cancelación de turnos
+- Perfil de usuario básico
+
+**Para Administradores:**
+- Panel de administración básico
+- Agenda del día
+- Vista semanal de turnos
+- Búsqueda de turnos por cliente
+- Gestión de servicios (crear, editar, eliminar)
+- Cancelación de turnos con notificación al cliente
+- Bloqueo de fechas (vacaciones, feriados)
+- Exportación de turnos a CSV
+
+**Sistema Base:**
+- Calendario interactivo con disponibilidad
+- Validación de horarios laborales
+- Límite de turnos activos por usuario
+- Reglas de seguridad de Firestore
+- Hosting en Firebase
+
+---
+
+### **Versión 2.0** (Octubre 2025)
+
+Mejoras significativas en UX/UI, métricas avanzadas y nuevas funcionalidades.
+
+#### Nuevas Funcionalidades V2:
+
+**Para Clientes:**
+- ✨ **Historial completo de turnos** con filtros avanzados (por estado, período, servicio)
+- ✨ **Modificación de turnos** (hasta 2 veces por turno)
+- ✨ **Sistema de lista de espera** para horarios ocupados
+- ✨ **Modo oscuro/claro** con cambio dinámico
+- ✨ **Perfil mejorado** con estadísticas personales y gestión de listas de espera
+- ✨ **Validación de fechas bloqueadas** en tiempo real
+
+**Para Administradores:**
+- ✨ **Dashboard completo** con métricas en tiempo real:
+  - Ingresos del mes calculados automáticamente
+  - Gráfico de turnos por día (últimos 7 días)
+  - Top 3 servicios más solicitados del mes
+  - Horarios más populares
+  - Clientes frecuentes (más de 3 turnos)
+  - Próximo turno con detalles del cliente
+- ✨ **Marcar turnos como completados**
+- ✨ **Modo oscuro** en panel de administración
+- ✨ **Estadísticas de servicios** más solicitados
+- ✨ **Badges visuales** de cantidad de turnos por día en el calendario
+
+**Sistema de Notificaciones:**
+- ✨ Email de confirmación al reservar turno
+- ✨ Recordatorio 24 horas antes del turno
+- ✨ Notificación al cancelar turno
+- ✨ Notificación de lista de espera cuando se libera un horario
+- ✨ Templates HTML profesionales con SendGrid
+
+**Mejoras de UX/UI:**
+- ✨ Modo oscuro con contraste optimizado (WCAG AA)
+- ✨ SweetAlert2 modales personalizados para ambos modos
+- ✨ Horarios sugeridos destacados visualmente
+- ✨ Mejoras de contraste en calendario y selección de servicios
+- ✨ Estados de carga y mensajes informativos
+- ✨ Diseño responsive mejorado
+
+**Mejoras Técnicas:**
+- ✨ Sistema de cache busting para actualizaciones
+- ✨ Validación robusta de fechas bloqueadas
+- ✨ Filtros de historial con 24 combinaciones posibles
+- ✨ Filtrado por fecha de cancelación para turnos cancelados
+- ✨ Headers de seguridad en Firebase Hosting
+- ✨ PWA improvements (manifest, service worker)
+- ✨ Logs detallados para debugging
+
+---
+
+## 🎨 Funcionalidades Principales
+
+### Para Clientes 👥
+
+✅ Autenticación segura con Firebase Auth
+✅ Reserva de turnos con calendario interactivo
+✅ Modificación de turnos (hasta 2 veces)
+✅ Cancelación con 1 hora de anticipación
+✅ Sistema de lista de espera automático
+✅ Historial completo con filtros avanzados
+✅ Perfil editable con estadísticas
+✅ Notificaciones por email automáticas
+✅ Modo oscuro/claro
+
+### Para Administradores 👨‍💼
+
+✅ Dashboard con métricas en tiempo real
+✅ Ingresos y estadísticas del mes
+✅ Top 3 servicios más solicitados
+✅ Agenda del día con detalles completos
+✅ Vista semanal completa
+✅ Búsqueda de turnos
+✅ Gestión completa de servicios (CRUD)
+✅ Marcar turnos como completados
+✅ Bloqueo de fechas
+✅ Exportación a CSV
+✅ Modo oscuro
 
 ---
 
 ## 🛠 Tecnologías
 
 ### Frontend
-- **Vanilla JavaScript** (ES6+)
-- **HTML5** & **CSS3**
-- **Bootstrap 5.3** - Framework CSS
+- **Vanilla JavaScript** (ES6+) - Sin frameworks
+- **HTML5** & **CSS3** con CSS Custom Properties
 - **SweetAlert2** - Modales elegantes
 - **Toastify.js** - Notificaciones toast
 
@@ -107,7 +161,7 @@ Sistema web completo para gestión de turnos de peluquería, desarrollado con Va
 - **Firebase Authentication** - Autenticación de usuarios
 - **Firebase Firestore** - Base de datos NoSQL en tiempo real
 - **Firebase Functions** - Funciones serverless para emails
-- **Firebase Hosting** - Hosting estático
+- **Firebase Hosting** - Hosting estático con CDN
 - **SendGrid API** - Envío de emails transaccionales
 
 ### Herramientas de Desarrollo
@@ -117,12 +171,40 @@ Sistema web completo para gestión de turnos de peluquería, desarrollado con Va
 
 ---
 
+## 👥 Equipo de Desarrollo
+
+### Versión 1.0 (Septiembre 2025)
+
+**Desarrollo Full Stack y Documentación:**
+- Mateo Santucci
+- Teo Gandolfo
+
+**Testing:**
+- Pedro Hauchar
+- Bruno Carlomagno
+- Eugenia Ojeda
+
+---
+
+### Versión 2.0 (Octubre 2025)
+
+**Desarrollo Full Stack:**
+- Eugenia Ojeda
+
+**Documentación y Testing:**
+- Teo Gandolfo
+- Mateo Santucci
+- Pedro Hauchar
+- Bruno Carlomagno
+
+---
+
 ## 🚀 Instalación
 
 ### Prerrequisitos
 
 - Node.js 18+ instalado
-- Firebase CLI instalado (`npm install -g firebase-tools`)
+- Firebase CLI (`npm install -g firebase-tools`)
 - Cuenta de Firebase (plan Blaze para Functions)
 - Cuenta de SendGrid para emails
 
@@ -177,29 +259,9 @@ const firebaseConfig = {
 };
 ```
 
-### 2. Email del Administrador
+### 2. Configuración del Sistema
 
-En `firebase-config.js`, configurar el email del admin:
-
-```javascript
-const CONFIG = {
-    // ... otras configuraciones
-    adminEmail: 'admin@tudominio.com' // Email del administrador
-};
-```
-
-### 3. SendGrid Email Verificado
-
-En `functions/index.js`, configurar el email verificado en SendGrid:
-
-```javascript
-const EMAIL_FROM = 'noreply@tudominio.com'; // Email verificado en SendGrid
-const APP_URL = 'https://tu-dominio.web.app'; // URL de tu aplicación
-```
-
-### 4. Horarios y Configuración
-
-En `firebase-config.js`, personalizar:
+En `firebase-config.js`:
 
 ```javascript
 const CONFIG = {
@@ -209,9 +271,18 @@ const CONFIG = {
     diasLaborales: [2, 3, 4, 5, 6], // Martes a Sábado
     maxTurnosPorUsuario: 3,       // Máximo de turnos activos
     diasAnticipacion: 120,        // Días de anticipación (4 meses)
-    servicios: [/* tus servicios */],
-    adminEmail: 'admin@peluqueria.com'
+    maxModificaciones: 2,         // Máximo de modificaciones por turno
+    adminEmail: 'admin@peluqueria.com' // Email del administrador
 };
+```
+
+### 3. SendGrid Email Verificado
+
+En `functions/index.js`:
+
+```javascript
+const EMAIL_FROM = 'noreply@tudominio.com'; // Email verificado en SendGrid
+const APP_URL = 'https://tu-dominio.web.app';
 ```
 
 ---
@@ -223,29 +294,27 @@ app_turnos/
 ├── public/
 │   ├── index.html              # Página principal (cliente)
 │   ├── login.html              # Login/Registro
-│   ├── admin.html              # Panel de administración ⭐ NUEVO
+│   ├── admin.html              # Panel de administración
 │   ├── css/
-│   │   ├── turnos-calendar.css # Estilos generales
-│   │   └── admin.css           # Estilos del panel admin ⭐ NUEVO
+│   │   ├── turnos-calendar.css # Estilos generales + modo oscuro
+│   │   └── admin.css           # Estilos del panel admin
 │   ├── js/
 │   │   ├── firebase-config.js  # Configuración de Firebase
 │   │   ├── auth.js             # Autenticación
 │   │   ├── app.js              # Lógica principal cliente
-│   │   ├── admin.js            # Lógica panel admin ⭐ NUEVO
+│   │   ├── admin.js            # Lógica panel admin
 │   │   └── validation.js       # Validaciones
-│   └── icons/                  # Iconos para PWA (futuro)
-├── functions/                  # Firebase Functions ⭐ NUEVO
-│   ├── index.js                # Funciones de email ⭐ NUEVO
-│   ├── package.json            # Dependencias Functions ⭐ NUEVO
-│   └── templates/              # Templates HTML emails (futuro)
-├── firestore.rules             # Reglas de seguridad Firestore ⭐ ACTUALIZADO
+│   ├── images/                 # Imágenes y logo
+│   ├── manifest.webmanifest    # Manifest PWA
+│   └── service-worker.js       # Service Worker PWA
+├── functions/                  # Firebase Functions
+│   ├── index.js                # Funciones de email y notificaciones
+│   └── package.json            # Dependencias Functions
+├── firestore.rules             # Reglas de seguridad Firestore
 ├── firestore.indexes.json      # Índices de Firestore
 ├── firebase.json               # Configuración Firebase
-├── README.md                   # Este archivo ⭐ ACTUALIZADO
-├── CHANGELOG.md                # Historial de cambios ⭐ NUEVO
-├── DOCUMENTACION_USO_IA.md     # Documentación de desarrollo con IA
-├── CASOS_DE_PRUEBA.md          # Casos de prueba
-└── REPORTE_DEFECTOS.md         # Reporte de bugs
+├── .firebaserc                 # Configuración de proyectos
+└── README.md                   # Este archivo
 ```
 
 ---
@@ -271,7 +340,7 @@ firebase deploy --only functions        # Solo functions
 firebase use --add
 ```
 
-2. **Deploy firestore rules:**
+2. **Deploy firestore:**
 ```bash
 firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
@@ -292,38 +361,51 @@ firebase deploy --only hosting
 
 ### URLs de Acceso
 
-- **App Cliente:** `https://TU-PROJECT.web.app`
-- **Panel Admin:** `https://TU-PROJECT.web.app/admin.html`
-- **Firebase Console:** `https://console.firebase.google.com/project/TU-PROJECT`
+- **App Cliente:** https://appturnos-a085a.web.app
+- **Panel Admin:** https://appturnos-a085a.web.app/admin.html
+- **Firebase Console:** https://console.firebase.google.com/project/appturnos-a085a
+
+---
+
+## 🧪 Testing
+
+El proyecto incluye documentación de testing:
+
+- **CASOS_DE_PRUEBA.md** - Casos de prueba funcionales
+- **REPORTE_DEFECTOS.md** - Reporte de bugs encontrados y resueltos
 
 ---
 
 ## 📚 Documentación Adicional
 
-- **CHANGELOG.md:** Historial de cambios completo ⭐ NUEVO
-- **DOCUMENTACION_USO_IA.md:** Documentación de desarrollo con IA
-- **CASOS_DE_PRUEBA.md:** Casos de prueba detallados
-- **REPORTE_DEFECTOS.md:** Bugs encontrados y resueltos
+- **DOCUMENTACION_USO_IA.md** - Documentación de desarrollo con Claude Code
+- **.claude/** - Configuración de Claude Code para desarrollo asistido por IA
 
 ---
 
-## 🤝 Contribuciones
+## 🔒 Seguridad
 
-Este es un proyecto académico/educativo. Para sugerencias o mejoras, contactar al equipo de desarrollo.
+- Autenticación con Firebase Authentication
+- Reglas de seguridad de Firestore validadas
+- Headers de seguridad en hosting (CSP, X-Frame-Options, etc.)
+- Validación de permisos en cliente y servidor
+- API Keys protegidas con Firebase Functions config
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto es de uso académico/educativo.
+Este proyecto es de uso académico/educativo desarrollado para la materia de Ingeniería de Software.
 
 ---
 
 ## 📧 Contacto
 
-**Equipo de Desarrollo V2**
-- Eugenia Ojeda - Desarrolladora Principal
-- Teo Gandolfo, Mateo Santucci, Pedro Hauchar, Bruno Carlomagno - Documentación y Testing
+**Equipo de Desarrollo**
+
+**V1.0:** Mateo Santucci, Teo Gandolfo
+**V2.0:** Eugenia Ojeda
+**Testing:** Pedro Hauchar, Bruno Carlomagno
 
 **Repositorio:** https://github.com/euge-90/app_turnos
 
@@ -331,12 +413,12 @@ Este proyecto es de uso académico/educativo.
 
 ## 🎉 Agradecimientos
 
-Gracias al equipo completo por el esfuerzo y dedicación en el desarrollo de Turnify V2.
+Gracias a todo el equipo por el esfuerzo y dedicación en el desarrollo de Turnify en sus dos versiones.
 
 ---
 
-**Desarrollado con ❤️ por el equipo de Turnify**
+**Desarrollado con ❤️ para la gestión eficiente de turnos**
 
-**Versión:** 2.0.0
+**Versión Actual:** 2.0.0
 **Fecha:** Octubre 2025
-**Estado:** ✅ Producción
+**Estado:** ✅ En Producción
