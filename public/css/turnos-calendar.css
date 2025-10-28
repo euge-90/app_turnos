@@ -1977,3 +1977,326 @@ input[type="date"].filter-select {
         width: 100%;
     }
 }
+
+/* ============================================
+   MODO OSCURO - MEJORADO PARA MEJOR CONTRASTE
+   ============================================ */
+
+/* 1. CALENDARIO - DÍAS CON MEJOR CONTRASTE */
+:root.dark-mode .calendar-day,
+body.dark-mode .calendar-day {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #404040;
+}
+
+:root.dark-mode .calendar-day:hover:not(.disabled):not(.occupied):not(.blocked),
+body.dark-mode .calendar-day:hover:not(.disabled):not(.occupied):not(.blocked) {
+    background-color: #3a3a3a;
+    border-color: #64B5F6;
+    transform: scale(1.05);
+}
+
+/* Día disponible - VERDE MÁS VIBRANTE */
+:root.dark-mode .calendar-day.available,
+body.dark-mode .calendar-day.available {
+    background-color: #1B5E20 !important;
+    border: 2px solid #4CAF50 !important;
+    color: #A5D6A7 !important;
+    font-weight: 600;
+}
+
+:root.dark-mode .calendar-day.available:hover,
+body.dark-mode .calendar-day.available:hover {
+    background-color: #2E7D32 !important;
+    border-color: #66BB6A !important;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+}
+
+/* Día seleccionado - AZUL MUY VISIBLE */
+:root.dark-mode .calendar-day.selected,
+body.dark-mode .calendar-day.selected {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    border: 2px solid #2196F3 !important;
+    color: #FFFFFF !important;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.5);
+}
+
+/* Día ocupado - ROJO CLARO */
+:root.dark-mode .calendar-day.occupied,
+body.dark-mode .calendar-day.occupied {
+    background-color: #B71C1C !important;
+    border: 2px solid #E53935 !important;
+    color: #FFCDD2 !important;
+    opacity: 0.8;
+}
+
+/* Día bloqueado - AMARILLO/NARANJA */
+:root.dark-mode .calendar-day.blocked,
+body.dark-mode .calendar-day.blocked {
+    background-color: #E65100 !important;
+    border: 2px solid #FF6F00 !important;
+    color: #FFE0B2 !important;
+    opacity: 0.7;
+}
+
+/* Día pasado - MÁS CONTRASTE */
+:root.dark-mode .calendar-day.past,
+body.dark-mode .calendar-day.past {
+    background-color: #1a1a1a !important;
+    color: #666666 !important;
+    border: 1px solid #333333 !important;
+    opacity: 0.5;
+}
+
+/* Día deshabilitado */
+:root.dark-mode .calendar-day.disabled,
+body.dark-mode .calendar-day.disabled {
+    background-color: #1a1a1a !important;
+    color: #555555 !important;
+    border: 1px solid #2a2a2a !important;
+}
+
+/* 2. SERVICIOS - MEJOR VISIBILIDAD */
+:root.dark-mode .service-card,
+body.dark-mode .service-card {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #404040;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+:root.dark-mode .service-card:hover,
+body.dark-mode .service-card:hover {
+    border-color: #64B5F6;
+    box-shadow: 0 6px 20px rgba(100, 181, 246, 0.3);
+    transform: translateY(-5px);
+}
+
+:root.dark-mode .service-card.selected,
+body.dark-mode .service-card.selected {
+    border: 3px solid #2196F3 !important;
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+}
+
+/* Título de servicio */
+:root.dark-mode .service-card h3,
+body.dark-mode .service-card h3 {
+    color: #E3F2FD;
+}
+
+/* Precio más visible */
+:root.dark-mode .service-card .service-price,
+body.dark-mode .service-card .service-price {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.3em;
+}
+
+/* 3. FILTROS - MEJOR CONTRASTE */
+:root.dark-mode .historial-filters,
+body.dark-mode .historial-filters {
+    background-color: #2a2a2a;
+    border: 1px solid #404040;
+}
+
+:root.dark-mode .filter-select,
+body.dark-mode .filter-select {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    border: 2px solid #505050;
+}
+
+:root.dark-mode .filter-select:focus,
+body.dark-mode .filter-select:focus {
+    border-color: #64B5F6;
+    box-shadow: 0 0 8px rgba(100, 181, 246, 0.3);
+}
+
+:root.dark-mode .filter-group label,
+body.dark-mode .filter-group label {
+    color: #BBDEFB;
+    font-weight: 500;
+}
+
+:root.dark-mode #customDateRange,
+body.dark-mode #customDateRange {
+    background-color: #252525 !important;
+    border: 2px solid #505050 !important;
+}
+
+/* Input de fecha en modo oscuro */
+:root.dark-mode input[type="date"].filter-select,
+body.dark-mode input[type="date"].filter-select {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    border: 2px solid #505050;
+}
+
+:root.dark-mode input[type="date"].filter-select::-webkit-calendar-picker-indicator,
+body.dark-mode input[type="date"].filter-select::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* 4. BOTONES - MEJOR VISIBILIDAD */
+:root.dark-mode .btn-primary,
+body.dark-mode .btn-primary {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+    color: #FFFFFF !important;
+    border: none;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+}
+
+:root.dark-mode .btn-primary:hover,
+body.dark-mode .btn-primary:hover {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.5);
+}
+
+:root.dark-mode .btn-secondary,
+body.dark-mode .btn-secondary {
+    background-color: #424242 !important;
+    color: #E0E0E0 !important;
+    border: 2px solid #616161;
+}
+
+:root.dark-mode .btn-secondary:hover,
+body.dark-mode .btn-secondary:hover {
+    background-color: #616161 !important;
+    border-color: #757575;
+}
+
+/* Botón "Limpiar" más visible */
+:root.dark-mode #clearFiltersBtn,
+body.dark-mode #clearFiltersBtn {
+    background-color: #E65100 !important;
+    color: #FFFFFF !important;
+    border: none;
+}
+
+:root.dark-mode #clearFiltersBtn:hover,
+body.dark-mode #clearFiltersBtn:hover {
+    background-color: #FF6F00 !important;
+}
+
+/* 5. CARDS DE TURNOS - MEJOR CONTRASTE */
+:root.dark-mode .appointment-card,
+body.dark-mode .appointment-card {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #404040;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+:root.dark-mode .appointment-card:hover,
+body.dark-mode .appointment-card:hover {
+    border-color: #64B5F6;
+    transform: translateY(-3px);
+}
+
+/* Estado del turno */
+:root.dark-mode .appointment-card .status-badge,
+body.dark-mode .appointment-card .status-badge {
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+:root.dark-mode .appointment-card .status-badge.confirmado,
+body.dark-mode .appointment-card .status-badge.confirmado {
+    background-color: #2E7D32;
+    color: #A5D6A7;
+}
+
+:root.dark-mode .appointment-card .status-badge.cancelado,
+body.dark-mode .appointment-card .status-badge.cancelado {
+    background-color: #C62828;
+    color: #FFCDD2;
+}
+
+/* Historial cards */
+:root.dark-mode .historial-card,
+body.dark-mode .historial-card {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #404040;
+}
+
+:root.dark-mode .historial-card .historial-badge,
+body.dark-mode .historial-card .historial-badge {
+    font-weight: bold;
+}
+
+:root.dark-mode .historial-card .historial-badge.completed,
+body.dark-mode .historial-card .historial-badge.completed {
+    background-color: #2E7D32;
+    color: #A5D6A7;
+}
+
+:root.dark-mode .historial-card .historial-badge.cancelled,
+body.dark-mode .historial-card .historial-badge.cancelled {
+    background-color: #C62828;
+    color: #FFCDD2;
+}
+
+/* 6. HEADERS Y TEXTOS */
+:root.dark-mode h1,
+:root.dark-mode h2,
+:root.dark-mode h3,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3 {
+    color: #E3F2FD;
+}
+
+:root.dark-mode .section-title,
+body.dark-mode .section-title {
+    color: #BBDEFB;
+    border-bottom: 2px solid #1976D2;
+}
+
+/* 7. HORARIOS - MEJOR CONTRASTE */
+:root.dark-mode .horario-btn,
+body.dark-mode .horario-btn {
+    background-color: #2a2a2a;
+    border: 2px solid #404040;
+    color: #e0e0e0;
+}
+
+:root.dark-mode .horario-btn:hover:not(.ocupado):not(.disabled),
+body.dark-mode .horario-btn:hover:not(.ocupado):not(.disabled) {
+    background-color: #3a3a3a;
+    border-color: #64B5F6;
+    box-shadow: 0 0 12px rgba(100, 181, 246, 0.3);
+}
+
+:root.dark-mode .horario-btn.selected,
+body.dark-mode .horario-btn.selected {
+    background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+    border: 2px solid #2196F3 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.4);
+}
+
+:root.dark-mode .horario-btn.ocupado,
+body.dark-mode .horario-btn.ocupado {
+    background-color: #B71C1C !important;
+    border: 2px solid #E53935 !important;
+    color: #FFCDD2 !important;
+}
+
+/* 8. STATS Y BADGES */
+:root.dark-mode .stat-item,
+body.dark-mode .stat-item {
+    background-color: #2a2a2a;
+    border: 2px solid #404040;
+}
+
+:root.dark-mode .stat-item .number,
+body.dark-mode .stat-item .number {
+    color: #64B5F6;
+}
+
+:root.dark-mode .stat-item .label,
+body.dark-mode .stat-item .label {
+    color: #BBDEFB;
+}
